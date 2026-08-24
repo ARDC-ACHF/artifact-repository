@@ -1,0 +1,27 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://ausstage.org.au/person/700004",
+  "type": "Person",
+  "_label": "Isabelle Turner",
+  "classified_as": [
+    {
+      "id": "http://vocab.getty.edu/aat/300025658",
+      "type": "Type",
+      "_label": "actor (performing artist)"
+    }
+  ],
+  "carried_out": [
+    {
+      "id": "https://ausstage.org.au/event/54321",
+      "type": "Activity",
+      "_label": "Waiting for Godot, 2024 (Riverside Theatre production)"
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Biography",
+      "content": "Physical-theatre specialist who played Lucky in the 2024 Riverside Theatre production of Waiting for Godot."
+    }
+  ]
+}
