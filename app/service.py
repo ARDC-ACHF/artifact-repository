@@ -187,6 +187,71 @@ class RepositoryService:
             candidate = (stamp + timedelta(microseconds=1)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         return candidate
 
+    # --- deletion --------------------------------------------------------
+    def delete(self, iri: str) -> bool:
+        """Permanently remove all snapshots; partial storage deletion is retryable.
+
+        Update the index before destructive storage work. On storage failure,
+        reconcile the projection with the surviving pointer, without recreating
+        deleted data. Recovery is best effort, not a distributed transaction.
+        """
+        with self._lock:
+            exists = bool(self._storage.list_versions(iri))
+            self._index.delete(iri)
+            try:
+                self._storage.delete(iri)
+            except Exception:
+                self._repair_deletion_index(iri)
+                raise
+            return exists
+
+    def delete_version(self, iri: str, published_at: str) -> bool:
+        """Delete one snapshot, promoting the newest remaining if it is current."""
+        with self._lock:
+            target = self._storage.get_version(iri, published_at)
+            if target is None:
+                return False
+            current = self._storage.get(iri)
+            if current is None or current.published_at != published_at:
+                self._storage.delete_version(iri, published_at)
+                return True
+
+            remaining = [v.published_at for v in self._storage.list_versions(iri)
+                         if v.published_at != published_at]
+            replacement_id = max(remaining) if remaining else None
+            replacement = (self._storage.get_version(iri, replacement_id)
+                           if replacement_id is not None else None)
+            self._index_stored(iri, replacement)
+            try:
+                self._storage.restore_pointer(iri, replacement_id)
+                self._storage.delete_version(iri, published_at)
+            except Exception:
+                try:
+                    # A Swift timeout may mean deletion actually succeeded.
+                    # Never restore a pointer to an absent snapshot.
+                    if self._storage.get_version(iri, published_at) is not None:
+                        self._storage.restore_pointer(iri, published_at)
+                except Exception:
+                    logging.getLogger(__name__).exception("Deletion pointer rollback failed for %s", iri)
+                self._repair_deletion_index(iri)
+                raise
+            return True
+
+    def _index_stored(self, iri: str, stored: StoredArtifact | None) -> None:
+        if stored is None:
+            self._index.delete(iri)
+        else:
+            self._index.upsert(
+                iri, partner=stored.partner, type=stored.type, label=stored.label,
+                body_text=extract_body_text(json.loads(stored.body)),
+            )
+
+    def _repair_deletion_index(self, iri: str) -> None:
+        try:
+            self._index_stored(iri, self._storage.get(iri))
+        except Exception:
+            logging.getLogger(__name__).exception("Deletion index repair failed for %s", iri)
+
     # --- retrieval / listing / search -----------------------------------
     def get_current(self, iri: str) -> StoredArtifact | None:
         """Return the current version (body + metadata) or ``None``."""
