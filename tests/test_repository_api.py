@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
+from app.auth import BasicAuthProvider
 from app.validation.validator import CONTEXT_URL
 
 
@@ -20,7 +21,8 @@ def offline(monkeypatch):
 
 @pytest.fixture
 def client(tmp_path):
-    with TestClient(create_app(data_dir=tmp_path)) as client:
+    with TestClient(create_app(data_dir=tmp_path, auth_providers=(BasicAuthProvider("tester", "test-secret"),))) as client:
+        client.auth = ("tester", "test-secret")
         yield client
 
 
@@ -111,9 +113,11 @@ def test_request_errors(client, path, params, status):
 
 
 def test_restart_keeps_artifacts_and_index(tmp_path, payload):
-    with TestClient(create_app(data_dir=tmp_path)) as client:
+    with TestClient(create_app(data_dir=tmp_path, auth_providers=(BasicAuthProvider("tester", "test-secret"),))) as client:
+        client.auth = ("tester", "test-secret")
         result = client.post("/api/v1/artifacts", json=payload).json()
-    with TestClient(create_app(data_dir=tmp_path)) as client:
+    with TestClient(create_app(data_dir=tmp_path, auth_providers=(BasicAuthProvider("tester", "test-secret"),))) as client:
+        client.auth = ("tester", "test-secret")
         assert client.get(result["locator"]).json() == payload
         assert client.get("/api/v1/search", params={"q": "landscape"}).json()["total"] == 1
 

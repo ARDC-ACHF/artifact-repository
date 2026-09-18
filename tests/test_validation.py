@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from pyld import jsonld
 
 from app.main import create_app
+from app.auth import BasicAuthProvider
 from app.validation.context_loader import build_document_loader
 from app.validation.supported_types import SUPPORTED_TYPES
 from app.validation.validator import CONTEXT_PATH, CONTEXT_URL, LinkedArtValidator
@@ -38,7 +39,8 @@ def validator():
 
 @pytest.fixture
 def client():
-    with TestClient(create_app()) as client:
+    with TestClient(create_app(auth_providers=(BasicAuthProvider("tester", "test-secret"),))) as client:
+        client.auth = ("tester", "test-secret")
         yield client
 
 
