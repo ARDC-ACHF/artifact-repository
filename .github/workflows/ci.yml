@@ -2,7 +2,7 @@ name: Tests
 
 on:
   pull_request:
-    branches: [master, project-foundation]
+    branches: [master, project-foundation, basic-validation-and-errors]
   push:
     branches: [master]
   workflow_dispatch:
@@ -22,6 +22,7 @@ jobs:
           cache-dependency-path: |
             requirements.txt
             requirements-dev.txt
+            requirements-swift.txt
             constraints.txt
       - run: python -m pip install -r requirements-dev.txt
       - run: python -m pip check

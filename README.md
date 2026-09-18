@@ -8,8 +8,10 @@ platforms publish artifacts for cross-domain discovery.
 
 The application provides basic offline Linked Art profile validation, a
 liveness endpoint, interactive API documentation and automated tests.
-It does not store or search artifacts. No credentials, external services or
-runtime data directories are required.
+Standalone filesystem and Swift storage backends provide persistence and version
+history through a Python interface. The API does not yet publish, retrieve or
+search stored artifacts. Running the API and tests requires no credentials or
+external services; storage is not initialized at application startup.
 
 ## Local quickstart
 
@@ -40,13 +42,17 @@ app/__init__.py       Package metadata
 app/main.py           Application factory, health and validation endpoints
 app/models.py         Validation response contracts
 app/validation/      Profile checks and bundled offline context
+app/storage/         Shared contract, filesystem and Swift versioned storage
+docs/storage.md      Storage contract and runnable backend examples
 tests/test_health.py  Startup, health and documentation smoke tests
 tests/test_validation.py  Validator and API contract tests
+tests/test_storage.py  Shared offline backend contract and failure tests
 tests/fixtures/       Representative prototype documents from three domains
 requirements.txt     Runtime dependencies
 requirements-dev.txt Test dependencies, including runtime requirements
+requirements-swift.txt Optional Swift client (included in test dependencies)
 constraints.txt      Pinned direct and transitive dependency versions
-.github/workflows/ci.yml  Tests for PRs targeting master/project-foundation and pushes to master
+.github/workflows/ci.yml  Tests for master and stacked foundation/validation PRs
 ```
 
 Both installation paths use `constraints.txt` to keep dependency versions
@@ -113,9 +119,10 @@ to check that no storage/index directories are created.
 ## Planned architecture and follow-up PRs
 
 The planned data flow is partner JSON-LD → validation → storage and search
-index → retrieval/search API. Only basic validation is currently included.
+index → retrieval/search API. Basic validation and standalone versioned storage
+are included. See [storage usage and limitations](docs/storage.md); storage does
+not itself validate documents or assign publication timestamps.
 
-1. Local persistence and versioning.
-2. Repository API, indexing and cross-domain search.
-3. Demo frontend and sample-data walkthrough.
-4. Swift storage backend and deployment support.
+1. Publication orchestration, repository API, indexing and cross-domain search.
+2. Demo frontend and sample-data walkthrough.
+3. Deployment and environment-based backend/authentication configuration.
