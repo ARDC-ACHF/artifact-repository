@@ -10,7 +10,8 @@ The application provides offline Linked Art profile validation, versioned
 publication, current/historical retrieval, listing and filtered full-text search.
 Filesystem storage and a SQLite FTS5 index are initialized lazily on the first
 repository request; health, documentation and validation remain storage-free.
-Running the default API and tests requires no credentials or external services.
+API access requires a configured shared username/password; tests supply their
+own credentials and require no external services.
 Swift storage can be injected through the Python application factory; deployment
 and environment-based backend configuration are outside this PR.
 
@@ -23,6 +24,8 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements-dev.txt
 python -m pytest
+export API_AUTH_USERNAME=reviewer
+# Supply API_AUTH_PASSWORD securely in the environment before starting.
 uvicorn app.main:app --reload
 ```
 
@@ -36,12 +39,45 @@ For a runtime-only installation, use `requirements.txt`.
 `/health` indicates application liveness only; it does not check storage or
 index readiness. There is no frontend at `/` yet.
 
+## API authentication
+
+Set `API_AUTH_USERNAME` and `API_AUTH_PASSWORD` before starting the application.
+Use a long, randomly generated password; never commit it. Environment values are
+read when the application is created; restart to rotate credentials. `.env` files
+are not automatically loaded. The username must not contain a colon.
+
+All `/api` and `/api/...` requests require HTTP Basic authentication, including
+validation and read-only requests. Missing/invalid credentials return 401 with
+a `WWW-Authenticate` challenge. Missing/blank configuration returns 503 and
+never enables anonymous access. `/health`, `/docs`, `/redoc` and `/openapi.json`
+remain public; health reports liveness, not authentication readiness.
+
+In `/docs`, select **Authorize** and enter the configured username/password.
+For curl, use `--user "$API_AUTH_USERNAME"` to prompt for the password, as below.
+**Use HTTPS outside localhost:** Basic credentials are encoded, not encrypted.
+Do not log Authorization headers or expose this development server directly.
+
+`app/auth.py` separates the ASGI middleware from authentication providers.
+`create_app(auth_providers=(... ,))` can inject multiple providers, each with a
+unique authorization scheme, async `authenticate(credentials)` method, challenge
+and OpenAPI security definition. The middleware selects only the supplied
+scheme, rejects duplicate Authorization headers and exposes the verified
+`Principal` as `request.state.principal`. An empty provider tuple denies access.
+API routes must stay under `/api/` to inherit this boundary.
+
+Only Basic is implemented. A future Bearer provider can validate OAuth/OIDC
+access tokens (signature, issuer, audience and expiry) without changing routes.
+Login flows, permissions/scopes, individual accounts, rate limiting and browser
+CSRF protection are not implemented. All holders of the shared credential have
+equal read/write access; this is not a complete production security solution.
+
 ## Project layout
 
 ```text
 app/__init__.py       Package metadata
 app/main.py           Application factory, health and validation endpoints
 app/api.py            Publication, retrieval, listing and search endpoints
+app/auth.py           Authentication middleware and pluggable Basic provider
 app/service.py        Validation/storage/index orchestration and reindexing
 app/index/            SQLite FTS5 search projection
 app/extract.py        Label and searchable-text extraction
@@ -77,11 +113,11 @@ containing `path`, `code` and `message`.
 From the repository root, with the server running:
 
 ```bash
-curl -i http://localhost:8000/api/v1/artifacts/validate \
+curl -i --user "$API_AUTH_USERNAME" http://localhost:8000/api/v1/artifacts/validate \
   -H 'Content-Type: application/json' \
   --data-binary @tests/fixtures/nga_object_98765.json
 
-curl -i http://localhost:8000/api/v1/artifacts/validate \
+curl -i --user "$API_AUTH_USERNAME" http://localhost:8000/api/v1/artifacts/validate \
   -H 'Content-Type: application/json' \
   -d '{"@context":"https://linked.art/ns/v1/linked-art.json","id":"https://example.org/1","type":"Unknown"}'
 ```
@@ -114,8 +150,8 @@ Structural errors are collected before expansion to avoid redundant errors.
 
 These are basic profile checks, **not full Linked Art, CIDOC-CRM or SHACL
 conformance**. Unknown properties may be ignored by JSON-LD expansion, and
-nested entities are not checked against a domain schema. Authentication,
-rate/body-size limits and production hardening are deferred.
+nested entities are not checked against a domain schema. Rate/body-size limits
+and production hardening are deferred.
 
 `python -m pytest` exercises all supported types, three representative fixtures,
 malformed JSON, invalid fields/contexts and the API response contract. Validation
@@ -129,7 +165,6 @@ retrieval/search API. See [the repository API walkthrough](docs/repository-api.m
 for requests, response semantics, recovery and limitations, and
 [storage usage](docs/storage.md) for backend details.
 
-1. Publication orchestration, repository API, indexing and cross-domain search.
-2. Demo frontend and sample-data walkthrough.
-3. Deployment and environment-based backend/authentication configuration.
- 
+This remains an incremental, single-process implementation, not a production
+service. OAuth/OIDC, multi-writer coordination and deployment configuration
+are deferred. No demo UI or sample-loading tooling is included.

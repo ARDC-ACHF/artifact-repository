@@ -2,7 +2,10 @@
 
 Run `uvicorn app.main:app --reload` from the repository root. The default service
 uses `data/artifacts/` and `data/index.sqlite3` (ignored by Git). SQLite must have
-FTS5 support. No new runtime packages or credentials are needed.
+FTS5 support. Configure `API_AUTH_USERNAME` and `API_AUTH_PASSWORD` before starting;
+see [authentication setup](../README.md#api-authentication). Every API endpoint
+requires HTTP Basic credentials. Missing credentials return 401; missing server
+configuration returns 503. Health and documentation stay public.
 
 ## Endpoints
 
@@ -31,14 +34,14 @@ strings and fragments without path-decoding ambiguity. Follow returned
 ## Verifiable walkthrough
 
 ```bash
-curl -i http://localhost:8000/api/v1/artifacts \
+curl -i --user "$API_AUTH_USERNAME" http://localhost:8000/api/v1/artifacts \
   -H 'Content-Type: application/json' \
   -d '{"@context":"https://linked.art/ns/v1/linked-art.json","id":"https://nga.gov.au/object/review","type":"HumanMadeObject","_label":"Golden landscape"}'
 
-curl --get http://localhost:8000/api/v1/artifacts/item \
+curl --user "$API_AUTH_USERNAME" --get http://localhost:8000/api/v1/artifacts/item \
   --data-urlencode 'iri=https://nga.gov.au/object/review'
 
-curl --get http://localhost:8000/api/v1/search \
+curl --user "$API_AUTH_USERNAME" --get http://localhost:8000/api/v1/search \
   --data-urlencode 'q=Golden' --data-urlencode 'partners=nga'
 ```
 
@@ -55,7 +58,7 @@ canonical UTC microsecond timestamp. The first version remains accessible via
 its `stored_at` URL; searching `Golden` no longer returns this artifact.
 
 ```bash
-curl --get http://localhost:8000/api/v1/artifacts/versions \
+curl --user "$API_AUTH_USERNAME" --get http://localhost:8000/api/v1/artifacts/versions \
   --data-urlencode 'iri=https://nga.gov.au/object/review'
 ```
 
@@ -97,7 +100,7 @@ finally:
 Reindexing is explicit, not performed on every startup. Run one application
 process/service writer only; its publication lock does not coordinate multiple
 workers, hosts or direct storage clients. There is no distributed transaction,
-authentication, full schema validation or production availability guarantee.
+fine-grained authorization, full schema validation or production availability guarantee.
 Live Swift verification remains separate from the offline tests.
 
 ## Tests
