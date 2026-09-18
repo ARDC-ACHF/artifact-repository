@@ -2,7 +2,7 @@ name: Tests
 
 on:
   pull_request:
-    branches: [master, project-foundation, basic-validation-and-errors]
+    branches: [master, project-foundation, basic-validation-and-errors, local-persistence-and-versioning]
   push:
     branches: [master]
   workflow_dispatch:
