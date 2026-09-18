@@ -8,6 +8,9 @@ platforms publish artifacts for cross-domain discovery.
 
 The application provides offline Linked Art profile validation, versioned
 publication, current/historical retrieval, listing and filtered full-text search.
+Authenticated DELETE endpoints remove individual snapshots or entire artifacts;
+deleting the current snapshot promotes the newest remaining snapshot. See
+[deletion behavior and examples](docs/repository-api.md#permanent-deletion).
 Filesystem storage and a SQLite FTS5 index are initialized lazily on the first
 repository request; health, documentation and validation remain storage-free.
 API access requires a configured shared username/password; tests supply their

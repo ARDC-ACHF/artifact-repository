@@ -5,7 +5,7 @@ import json
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 from starlette.concurrency import run_in_threadpool
 
-from app.models import ListResponse, PublishResponse, SearchResponse, ValidationResult, VersionListResponse
+from app.models import DeleteResponse, ListResponse, PublishResponse, SearchResponse, ValidationResult, VersionListResponse
 from app.service import ValidationFailed
 from app.storage.base import validate_version_id
 
@@ -68,6 +68,29 @@ def repository_router(get_service) -> APIRouter:
         if body is None:
             raise HTTPException(404, "Version not found")
         return Response(body, media_type="application/ld+json")
+
+    @router.delete("/artifacts/item", response_model=DeleteResponse, response_model_exclude_none=True,
+                   responses={404: {"description": "Artifact not found"}})
+    def delete_artifact(iri: str = Query(..., min_length=1, pattern=r"\S")):
+        """Permanently delete the artifact and all its snapshots."""
+        if not get_service().delete(iri):
+            raise HTTPException(404, "Artifact not found")
+        return DeleteResponse(id=iri)
+
+    @router.delete("/artifacts/version", response_model=DeleteResponse,
+                   responses={404: {"description": "Version not found"}})
+    def delete_version(iri: str = Query(..., min_length=1, pattern=r"\S"), published_at: str = Query(...)):
+        """Delete a snapshot; if current, promote the newest remaining snapshot.
+
+        Deleting the last snapshot removes the artifact from listing and search.
+        """
+        try:
+            validate_version_id(published_at)
+        except ValueError:
+            raise HTTPException(422, "published_at must be a canonical UTC timestamp")
+        if not get_service().delete_version(iri, published_at):
+            raise HTTPException(404, "Version not found")
+        return DeleteResponse(id=iri, published_at=published_at)
 
     @router.get("/artifacts/versions", response_model=VersionListResponse)
     def history(iri: str = Query(..., min_length=1, pattern=r"\S")):

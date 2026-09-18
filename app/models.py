@@ -33,6 +33,12 @@ class PublishResponse(BaseModel):
     snapshot_of: str | None = None
 
 
+class DeleteResponse(BaseModel):
+    id: str
+    deleted: bool = True
+    published_at: str | None = None
+
+
 class ArtifactVersion(BaseModel):
     published_at: str
     is_current: bool

@@ -15,6 +15,8 @@ configuration returns 503. Health and documentation stay public.
 | `GET /api/v1/artifacts/item?iri=...` | Current JSON-LD, or 404. |
 | `GET /api/v1/artifacts/version?iri=...&published_at=...` | Historical JSON-LD, or 404. |
 | `GET /api/v1/artifacts/versions?iri=...` | Newest-first history, current flag and version locators; 404 if unknown. |
+| `DELETE /api/v1/artifacts/item?iri=...` | Permanently remove the artifact and every snapshot. |
+| `DELETE /api/v1/artifacts/version?iri=...&published_at=...` | Permanently remove one snapshot; promote the newest remaining if deleting current. |
 | `GET /api/v1/artifacts` | Current summaries with optional `partner`, `type`, `limit`, `offset`. |
 | `GET /api/v1/search?q=...` | Current full-text matches with repeated `partners`/`types`, `limit`, `offset`. |
 
@@ -66,6 +68,52 @@ Invalid publication returns the same 422 `{valid, errors}` envelope as the
 validation endpoint and writes no artifact. Invalid query parameters return
 FastAPI's 422 `detail` response. Retrieval returns `application/ld+json`.
 
+## Permanent deletion
+
+Both DELETE endpoints require the same shared credentials as publication and
+return 200 JSON: `{"id":"...","deleted":true}`; snapshot deletion also includes
+`published_at`. Unknown/already deleted artifacts or snapshots return 404.
+Missing/blank identifiers and invalid timestamps return 422. Use the exact
+canonical `published_at` from publication or history. No request body is needed.
+
+Deleting a historical snapshot leaves the current document and search unchanged.
+Deleting the current snapshot promotes the newest remaining timestamp, including
+its original metadata and searchable text; it does not create a new version.
+Deleting the last snapshot removes the artifact from listing and search.
+Whole-artifact deletion removes all snapshots, including any left without a
+current pointer after a previous failure. Other artifacts are unaffected.
+Publishing the same IRI afterward is allowed, but does not restore deleted history.
+
+**Deletion is irreversible through this API.** There is no trash, undo or deletion
+permission separate from the shared credential. This removes repository records,
+not external backups or provider-retained copies; it is not a secure-erasure guarantee.
+The methods are also available in `/docs` after selecting **Authorize**.
+
+```bash
+# Replace the timestamp with one returned by this artifact's history.
+curl -i --user "$API_AUTH_USERNAME" --get --request DELETE \
+  http://localhost:8000/api/v1/artifacts/version \
+  --data-urlencode 'iri=https://nga.gov.au/object/review' \
+  --data-urlencode 'published_at=2026-09-18T01:00:00.000000Z'
+
+# Remove the entire artifact and all remaining snapshots.
+curl -i --user "$API_AUTH_USERNAME" --get --request DELETE \
+  http://localhost:8000/api/v1/artifacts/item \
+  --data-urlencode 'iri=https://nga.gov.au/object/review'
+```
+
+Deletion shares the publication/reindex writer lock. The index update is attempted
+before destructive storage work, so an index failure prevents deletion. On a
+storage failure, the service attempts to reconcile search with the surviving
+current pointer; snapshot deletion also attempts to restore the previous pointer
+only if that snapshot still exists. Deleted data is never recreated for rollback.
+A failed whole-artifact deletion can leave some snapshots removed and others
+retrievable through history/version endpoints; retry the whole-artifact DELETE
+to finish cleanup. Timeouts can have ambiguous outcomes: inspect history before
+retrying. A retry may return 404 if the first request actually completed.
+Process crashes or failed recovery may require explicit reindexing below.
+Concurrent reads can observe intermediate state; no cross-backend atomicity is promised.
+
 ## Injection and recovery
 
 `create_app(data_dir=Path(...))` selects a local data directory.
@@ -76,7 +124,7 @@ not open either backend. Swift credentials/backend selection are not exposed as
 environment settings in this slice.
 
 Storage is authoritative. The index is a persistent, rebuildable projection,
-not a transaction spanning SQLite and storage. On an indexing failure the
+not a transaction spanning SQLite and storage. On a publication indexing failure the
 service attempts to restore the previous pointer and remove the new snapshot.
 Backend failures, process crashes or failed rollback can still require recovery.
 An unchanged re-publication refreshes the index without creating a snapshot.
@@ -98,7 +146,7 @@ finally:
 ```
 
 Reindexing is explicit, not performed on every startup. Run one application
-process/service writer only; its publication lock does not coordinate multiple
+process/service writer only; its mutation lock does not coordinate multiple
 workers, hosts or direct storage clients. There is no distributed transaction,
 fine-grained authorization, full schema validation or production availability guarantee.
 Live Swift verification remains separate from the offline tests.
@@ -108,5 +156,8 @@ Live Swift verification remains separate from the offline tests.
 `python -m pytest` covers publication/retry/update/history, locators, filtering,
 pagination, restart persistence, timestamp collisions, failure rollback and
 reindexing, alongside the existing validator and shared storage contracts.
+`tests/test_deletion.py` covers authenticated deletion, snapshot promotion,
+failure recovery, concurrent writers and restart persistence; backend coverage
+uses real filesystem storage and simulated Swift, not a live Swift service.
 Repository API tests use real temporary filesystem storage and SQLite with
 network access blocked. CI includes PRs targeting `local-persistence-and-versioning`.
