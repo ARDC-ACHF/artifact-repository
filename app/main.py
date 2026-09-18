@@ -16,6 +16,7 @@ from fastapi.responses import JSONResponse
 
 from app import __version__
 from app.api import read_payload, repository_router
+from app.auth import AuthenticationProvider, install_authentication, providers_from_environment
 from app.index import FtsIndex
 from app.models import ValidationResult
 from app.service import RepositoryService, ValidationFailed
@@ -23,7 +24,10 @@ from app.storage.fs_store import FilesystemStore
 from app.validation.validator import LinkedArtValidator
 
 
-def create_app(*, service: RepositoryService | None = None, data_dir: Path = Path("data")) -> FastAPI:
+def create_app(
+    *, service: RepositoryService | None = None, data_dir: Path = Path("data"),
+    auth_providers: tuple[AuthenticationProvider, ...] | None = None,
+) -> FastAPI:
     owned_index = None
     initialization_lock = Lock()
 
@@ -87,6 +91,7 @@ def create_app(*, service: RepositoryService | None = None, data_dir: Path = Pat
         """Report application liveness, not storage or index readiness."""
         return {"status": "ok"}
 
+    install_authentication(app, providers_from_environment() if auth_providers is None else tuple(auth_providers))
     return app
 
 
