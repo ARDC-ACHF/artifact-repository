@@ -1,0 +1,2 @@
+-c constraints.txt
+python-swiftclient==4.11.0

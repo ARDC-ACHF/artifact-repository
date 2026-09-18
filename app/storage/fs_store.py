@@ -1,287 +1,162 @@
-"""Local filesystem storage backend (default for laptop / demo runs).
+"""Filesystem snapshots as atomic JSON envelopes containing base64 raw bytes.
 
-Artifacts are stored *versioned*. For each IRI (encoded to ``<key>`` via
-:func:`iri_to_key`) the layout under ``settings.data_dir`` is::
-
-    versions/<key>/<published_at>.jsonld     # immutable version body, verbatim
-    versions/<key>/<published_at>.meta.json  # preserved metadata for the version
-    <key>.latest.json                        # pointer: {"published_at": "…"}
-
-``<published_at>`` is the URL-encoded UTC publication timestamp (its ``:`` are
-percent-encoded so it is a valid filename). The ``<key>.latest.json`` pointer
-records which version is current, so ``get(iri)`` returns the latest version
-verbatim. Older versions remain on disk as immutable, retrievable snapshots.
-
-Legacy flat-layout data (``<key>.jsonld`` written before versioning) is still
-readable: ``get`` falls back to it when no versions/pointer exist.
+Layout: versions/<hashed-iri>/<quoted-timestamp>.json and <hashed-iri>.latest.json.
+Complete records are linked exclusively into place before atomic pointer
+replacement. Single writer per artifact is required; this is not a transaction
+across records. Failed publication can leave staged snapshots for cleanup.
 """
 
 from __future__ import annotations
 
+import base64
 import json
-import urllib.parse
+import os
+import tempfile
 from pathlib import Path
+from urllib.parse import quote, unquote
 
-from app.config import Settings
-from app.storage.base import (
-    ListEntry,
-    StorageBackend,
-    StoredArtifact,
-    VersionEntry,
-    iri_to_key,
+from .base import (
+    ListEntry, StorageBackend, StoredArtifact, VersionConflictError, VersionEntry,
+    iri_to_key, validate_version_id,
 )
 
 _LATEST_SUFFIX = ".latest.json"
 
 
 class FilesystemStore(StorageBackend):
-    """Stores artifacts as versioned files in a local directory."""
+    """Local single-writer storage with immutable, complete version records."""
 
-    def __init__(self, settings: Settings) -> None:
-        self._settings = settings
-        self._dir: Path = settings.data_dir
+    def __init__(self, data_dir: Path) -> None:
+        self._dir = Path(data_dir)
         self._dir.mkdir(parents=True, exist_ok=True)
 
-    # --- path helpers ----------------------------------------------------
     def _versions_dir(self, key: str) -> Path:
         return self._dir / "versions" / key
 
-    def _version_body_path(self, key: str, published_at: str) -> Path:
-        enc = urllib.parse.quote(published_at, safe="")
-        return self._versions_dir(key) / f"{enc}.jsonld"
-
-    def _version_meta_path(self, key: str, published_at: str) -> Path:
-        enc = urllib.parse.quote(published_at, safe="")
-        return self._versions_dir(key) / f"{enc}.meta.json"
+    def _version_path(self, key: str, published_at: str) -> Path:
+        return self._versions_dir(key) / f"{quote(validate_version_id(published_at), safe='')}.json"
 
     def _pointer_path(self, key: str) -> Path:
         return self._dir / f"{key}{_LATEST_SUFFIX}"
 
-    # legacy flat layout (pre-versioning)
-    def _legacy_body_path(self, key: str) -> Path:
-        return self._dir / f"{key}.jsonld"
-
-    def _legacy_meta_path(self, key: str) -> Path:
-        return self._dir / f"{key}.meta.json"
-
-    # --- pointer helpers -------------------------------------------------
-    def _read_pointer(self, key: str) -> str | None:
-        path = self._pointer_path(key)
-        if not path.exists():
-            return None
+    @staticmethod
+    def _write_json(path: Path, data: dict, *, exclusive: bool = False) -> None:
+        temporary = None
         try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
+            with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=path.parent, prefix=".staged-", delete=False,
+            ) as stream:
+                temporary = Path(stream.name)
+                json.dump(data, stream, ensure_ascii=False)
+                stream.flush()
+                os.fsync(stream.fileno())
+            if exclusive:
+                os.link(temporary, path)
+            else:
+                os.replace(temporary, path)
+        finally:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
+
+    def _read_pointer(self, key: str) -> str | None:
+        try:
+            text = self._pointer_path(key).read_text(encoding="utf-8")
+        except FileNotFoundError:
             return None
-        pa = data.get("published_at")
-        return str(pa) if pa else None
+        return validate_version_id(json.loads(text)["published_at"])
 
     def _write_pointer(self, key: str, published_at: str) -> None:
-        self._pointer_path(key).write_text(
-            json.dumps({"published_at": published_at}), encoding="utf-8"
+        self._write_json(self._pointer_path(key), {"published_at": published_at})
+
+    def _read_version(self, key: str, published_at: str) -> StoredArtifact | None:
+        try:
+            text = self._version_path(key, published_at).read_text(encoding="utf-8")
+        except FileNotFoundError:
+            return None
+        record = json.loads(text)
+        return StoredArtifact(
+            body=base64.b64decode(record["body"], validate=True), **record["metadata"],
         )
 
     def _version_ids(self, key: str) -> list[str]:
-        """All version publication dates for ``key``, sorted oldest→newest."""
-        vdir = self._versions_dir(key)
-        if not vdir.exists():
-            return []
-        ids: list[str] = []
-        for meta_path in vdir.glob("*.meta.json"):
-            enc = meta_path.name[: -len(".meta.json")]
-            ids.append(urllib.parse.unquote(enc))
-        # ISO-8601 UTC timestamps sort correctly as plain strings.
-        return sorted(ids)
+        return sorted(
+            validate_version_id(unquote(path.stem))
+            for path in self._versions_dir(key).glob("*.json")
+        )
 
-    # --- writes ----------------------------------------------------------
     def put(
-        self,
-        iri: str,
-        body: bytes,
-        *,
-        partner: str,
-        type: str,
-        label: str | None = None,
-        published_at: str,
+        self, iri: str, body: bytes, *, partner: str, type: str,
+        label: str | None = None, published_at: str,
     ) -> str:
         key = iri_to_key(iri)
-        self._versions_dir(key).mkdir(parents=True, exist_ok=True)
-        meta = {
-            "iri": iri,
-            "partner": partner,
-            "type": type,
-            "label": label,
-            "published_at": published_at,
-        }
-        # Write the immutable version (meta then body), then advance the
-        # pointer so a partial write never becomes the visible "current".
-        self._version_meta_path(key, published_at).write_text(
-            json.dumps(meta), encoding="utf-8"
-        )
-        self._version_body_path(key, published_at).write_bytes(body)
+        path = self._version_path(key, published_at)
+        artifact = StoredArtifact(iri, body, partner, type, label, published_at)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            self._write_json(path, {
+                "body": base64.b64encode(body).decode("ascii"),
+                "metadata": artifact.metadata,
+            }, exclusive=True)
+        except FileExistsError:
+            if self._read_version(key, published_at) != artifact:
+                raise VersionConflictError(f"Version already exists: {published_at}") from None
         self._write_pointer(key, published_at)
-        return f"file://{self._version_body_path(key, published_at)}"
-
-    # --- reads -----------------------------------------------------------
-    def _read_version(
-        self, iri: str, key: str, published_at: str
-    ) -> StoredArtifact | None:
-        body_path = self._version_body_path(key, published_at)
-        if not body_path.exists():
-            return None
-        body = body_path.read_bytes()
-        meta: dict[str, object] = {}
-        meta_path = self._version_meta_path(key, published_at)
-        if meta_path.exists():
-            meta = json.loads(meta_path.read_text(encoding="utf-8"))
-        return StoredArtifact(
-            iri=str(meta.get("iri", iri)),
-            body=body,
-            partner=str(meta.get("partner", "")),
-            type=str(meta.get("type", "")),
-            label=meta.get("label") if meta.get("label") is not None else None,  # type: ignore[arg-type]
-            published_at=str(meta.get("published_at", published_at)),
-        )
-
-    def _read_legacy(self, iri: str, key: str) -> StoredArtifact | None:
-        body_path = self._legacy_body_path(key)
-        if not body_path.exists():
-            return None
-        body = body_path.read_bytes()
-        meta: dict[str, object] = {}
-        meta_path = self._legacy_meta_path(key)
-        if meta_path.exists():
-            meta = json.loads(meta_path.read_text(encoding="utf-8"))
-        return StoredArtifact(
-            iri=str(meta.get("iri", iri)),
-            body=body,
-            partner=str(meta.get("partner", "")),
-            type=str(meta.get("type", "")),
-            label=meta.get("label") if meta.get("label") is not None else None,  # type: ignore[arg-type]
-            published_at=meta.get("published_at"),  # type: ignore[arg-type]
-        )
+        return path.absolute().as_uri()
 
     def get(self, iri: str) -> StoredArtifact | None:
         key = iri_to_key(iri)
-        # 1) pointer → current version
-        pa = self._read_pointer(key)
-        if pa is not None:
-            art = self._read_version(iri, key, pa)
-            if art is not None:
-                return art
-        # 2) no/broken pointer: fall back to the newest version on disk
-        ids = self._version_ids(key)
-        if ids:
-            return self._read_version(iri, key, ids[-1])
-        # 3) legacy flat layout
-        return self._read_legacy(iri, key)
+        current = self._read_pointer(key)
+        return self._read_version(key, current) if current is not None else None
 
     def get_version(self, iri: str, published_at: str) -> StoredArtifact | None:
-        key = iri_to_key(iri)
-        return self._read_version(iri, key, published_at)
+        return self._read_version(iri_to_key(iri), published_at)
 
     def list_versions(self, iri: str) -> list[VersionEntry]:
         key = iri_to_key(iri)
-        ids = self._version_ids(key)
-        if not ids:
-            return []
-        current = self._read_pointer(key) or ids[-1]
-        entries: list[VersionEntry] = []
-        # Newest first.
-        for pa in reversed(ids):
-            meta: dict[str, object] = {}
-            meta_path = self._version_meta_path(key, pa)
-            if meta_path.exists():
-                try:
-                    meta = json.loads(meta_path.read_text(encoding="utf-8"))
-                except (OSError, json.JSONDecodeError):
-                    meta = {}
-            entries.append(
-                VersionEntry(
-                    iri=str(meta.get("iri", iri)),
-                    published_at=pa,
-                    is_current=(pa == current),
-                    partner=str(meta.get("partner", "")),
-                    type=str(meta.get("type", "")),
-                    label=meta.get("label") if meta.get("label") is not None else None,  # type: ignore[arg-type]
-                )
-            )
+        current = self._read_pointer(key)
+        entries = []
+        for published_at in reversed(self._version_ids(key)):
+            artifact = self._read_version(key, published_at)
+            if artifact is not None:
+                entries.append(VersionEntry(
+                    artifact.iri, published_at, published_at == current,
+                    artifact.partner, artifact.type, artifact.label,
+                ))
         return entries
 
-    # --- rollback / deletion --------------------------------------------
     def restore_pointer(self, iri: str, published_at: str | None) -> None:
         key = iri_to_key(iri)
         if published_at is None:
             self._pointer_path(key).unlink(missing_ok=True)
         else:
+            if self._read_version(key, published_at) is None:
+                raise ValueError(f"Version does not exist: {published_at}")
             self._write_pointer(key, published_at)
 
     def delete_version(self, iri: str, published_at: str) -> None:
         key = iri_to_key(iri)
-        self._version_body_path(key, published_at).unlink(missing_ok=True)
-        self._version_meta_path(key, published_at).unlink(missing_ok=True)
+        path = self._version_path(key, published_at)
+        if self._read_pointer(key) == published_at:
+            raise ValueError("Cannot delete the current version; restore the pointer first")
+        path.unlink(missing_ok=True)
 
     def delete(self, iri: str) -> None:
         key = iri_to_key(iri)
-        vdir = self._versions_dir(key)
-        if vdir.exists():
-            for child in vdir.iterdir():
-                child.unlink(missing_ok=True)
-            vdir.rmdir()
         self._pointer_path(key).unlink(missing_ok=True)
-        # Legacy flat files, if any.
-        self._legacy_body_path(key).unlink(missing_ok=True)
-        self._legacy_meta_path(key).unlink(missing_ok=True)
+        for published_at in self._version_ids(key):
+            self._version_path(key, published_at).unlink(missing_ok=True)
 
-    # --- enumeration -----------------------------------------------------
     def list(self) -> list[ListEntry]:
-        entries: list[ListEntry] = []
-        seen_keys: set[str] = set()
-        # Current versions, resolved via pointers.
-        for ptr_path in sorted(self._dir.glob(f"*{_LATEST_SUFFIX}")):
-            key = ptr_path.name[: -len(_LATEST_SUFFIX)]
-            seen_keys.add(key)
-            iri_guess = ""
-            pa = self._read_pointer(key)
-            if pa is None:
-                ids = self._version_ids(key)
-                pa = ids[-1] if ids else None
-            if pa is None:
-                continue
-            art = self._read_version(iri_guess, key, pa)
-            if art is None:
-                continue
-            entries.append(
-                ListEntry(
-                    iri=art.iri,
-                    partner=art.partner,
-                    type=art.type,
-                    label=art.label,
-                )
-            )
-        # Legacy flat metas with no pointer.
-        for meta_path in sorted(self._dir.glob("*.meta.json")):
-            key = meta_path.name[: -len(".meta.json")]
-            if key in seen_keys:
-                continue
-            try:
-                meta = json.loads(meta_path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError):
-                continue
-            entries.append(
-                ListEntry(
-                    iri=str(meta.get("iri", "")),
-                    partner=str(meta.get("partner", "")),
-                    type=str(meta.get("type", "")),
-                    label=meta.get("label"),
-                )
-            )
+        entries = []
+        for path in sorted(self._dir.glob(f"*{_LATEST_SUFFIX}")):
+            key = path.name[:-len(_LATEST_SUFFIX)]
+            current = self._read_pointer(key)
+            artifact = self._read_version(key, current) if current is not None else None
+            if artifact is not None:
+                entries.append(ListEntry(
+                    artifact.iri, artifact.partner, artifact.type, artifact.label,
+                ))
         return entries
 
     def health(self) -> dict[str, object]:
-        ok = self._dir.exists() and self._dir.is_dir()
-        return {
-            "backend": "fs",
-            "ok": ok,
-            "data_dir": str(self._dir),
-        }
+        return {"backend": "fs", "ok": self._dir.is_dir(), "data_dir": str(self._dir)}
