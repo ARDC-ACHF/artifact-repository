@@ -1,9 +1,9 @@
 # Versioned storage
 
-This slice ports filesystem persistence and OpenStack Swift storage together.
-Both implement `StorageBackend`; neither is connected to the HTTP application
-yet. No indexing, metadata extraction, publication endpoint or authentication
-configuration is introduced.
+Filesystem persistence and OpenStack Swift storage both implement
+`StorageBackend`. The [repository service](repository-api.md) connects storage
+to validation, indexing and the HTTP API, using filesystem storage by default.
+These backend interfaces remain independently usable without the service.
 
 ## Contract
 
@@ -18,7 +18,8 @@ configuration is introduced.
 - A snapshot cannot be overwritten. Repeating the same timestamp, bytes and
   metadata is safe and points to that snapshot; differing content or metadata
   raises `VersionConflictError`. Identical content at a **new timestamp** creates
-  another snapshot. Content-based publication deduplication is deferred.
+  another snapshot. Content-based deduplication is handled by the publication
+  service, not by this storage interface.
 - `get` returns current content; `get_version` retrieves a snapshot. Missing
   artifacts return `None`; missing histories return `[]`.
 - `list` returns current artifact metadata. `list_versions` includes retained

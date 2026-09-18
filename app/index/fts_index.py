@@ -46,7 +46,7 @@ class FtsIndex:
     def __init__(self, path: Path | str) -> None:
         self._path = str(path)
         # check_same_thread=False + a lock: FastAPI may touch this from
-        # different threads; writes are serialized by the lock.
+        # different threads; reads and writes are serialized by the lock.
         Path(self._path).parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(self._path, check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
@@ -109,12 +109,13 @@ class FtsIndex:
         self._append_filters(where, params, types, partners)
         where_sql = " AND ".join(where)
 
-        total = self._count(where_sql, params)
-        rows = self._conn.execute(
-            f"SELECT iri, partner, type, label FROM artifacts "
-            f"WHERE {where_sql} ORDER BY rank LIMIT ? OFFSET ?",
-            (*params, limit, offset),
-        ).fetchall()
+        with self._lock:
+            total = self._count(where_sql, params)
+            rows = self._conn.execute(
+                f"SELECT iri, partner, type, label FROM artifacts "
+                f"WHERE {where_sql} ORDER BY rank, iri LIMIT ? OFFSET ?",
+                (*params, limit, offset),
+            ).fetchall()
         return total, [self._row(r) for r in rows]
 
     def list(
@@ -131,17 +132,19 @@ class FtsIndex:
         self._append_filters(where, params, types, partners)
         where_sql = (" WHERE " + " AND ".join(where)) if where else ""
 
-        total = self._count(where_sql.replace(" WHERE ", "", 1) or "1=1", params)
-        rows = self._conn.execute(
-            f"SELECT iri, partner, type, label FROM artifacts{where_sql} "
-            f"ORDER BY iri LIMIT ? OFFSET ?",
-            (*params, limit, offset),
-        ).fetchall()
+        with self._lock:
+            total = self._count(where_sql.replace(" WHERE ", "", 1) or "1=1", params)
+            rows = self._conn.execute(
+                f"SELECT iri, partner, type, label FROM artifacts{where_sql} "
+                f"ORDER BY iri LIMIT ? OFFSET ?",
+                (*params, limit, offset),
+            ).fetchall()
         return total, [self._row(r) for r in rows]
 
     def count(self) -> int:
-        row = self._conn.execute("SELECT COUNT(*) AS c FROM artifacts").fetchone()
-        return int(row["c"])
+        with self._lock:
+            row = self._conn.execute("SELECT COUNT(*) AS c FROM artifacts").fetchone()
+            return int(row["c"])
 
     def health(self) -> dict[str, object]:
         try:
