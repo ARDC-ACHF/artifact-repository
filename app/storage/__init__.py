@@ -1,21 +1,14 @@
-"""Storage backends for the artifact repository."""
+"""Storage backends with caller-injected configuration and connections."""
 
-from __future__ import annotations
+from .base import (
+    ListEntry, StorageBackend, StoredArtifact, VersionConflictError, VersionEntry,
+    iri_to_key, validate_version_id,
+)
+from .fs_store import FilesystemStore
+from .swift_store import SwiftStore
 
-from app.config import Settings
-from app.storage.base import StorageBackend, StoredArtifact, VersionEntry
-
-
-def build_storage(settings: Settings) -> StorageBackend:
-    """Instantiate the storage backend selected by ``settings.storage_backend``."""
-    if settings.storage_backend == "swift":
-        from app.storage.swift_store import SwiftStore
-
-        return SwiftStore(settings)
-
-    from app.storage.fs_store import FilesystemStore
-
-    return FilesystemStore(settings)
-
-
-__all__ = ["StorageBackend", "StoredArtifact", "VersionEntry", "build_storage"]
+__all__ = [
+    "FilesystemStore", "SwiftStore", "StorageBackend", "StoredArtifact",
+    "ListEntry", "VersionEntry", "VersionConflictError", "iri_to_key",
+    "validate_version_id",
+]
