@@ -6,12 +6,13 @@ platforms publish artifacts for cross-domain discovery.
 
 ## Current scope
 
-The application provides basic offline Linked Art profile validation, a
-liveness endpoint, interactive API documentation and automated tests.
-Standalone filesystem and Swift storage backends provide persistence and version
-history through a Python interface. The API does not yet publish, retrieve or
-search stored artifacts. Running the API and tests requires no credentials or
-external services; storage is not initialized at application startup.
+The application provides offline Linked Art profile validation, versioned
+publication, current/historical retrieval, listing and filtered full-text search.
+Filesystem storage and a SQLite FTS5 index are initialized lazily on the first
+repository request; health, documentation and validation remain storage-free.
+Running the default API and tests requires no credentials or external services.
+Swift storage can be injected through the Python application factory; deployment
+and environment-based backend configuration are outside this PR.
 
 ## Local quickstart
 
@@ -40,7 +41,12 @@ index readiness. There is no frontend at `/` yet.
 ```text
 app/__init__.py       Package metadata
 app/main.py           Application factory, health and validation endpoints
-app/models.py         Validation response contracts
+app/api.py            Publication, retrieval, listing and search endpoints
+app/service.py        Validation/storage/index orchestration and reindexing
+app/index/            SQLite FTS5 search projection
+app/extract.py        Label and searchable-text extraction
+app/partners.py       Identifier host to partner mapping
+app/models.py         Validation and repository response contracts
 app/validation/      Profile checks and bundled offline context
 app/storage/         Shared contract, filesystem and Swift versioned storage
 docs/storage.md      Storage contract and runnable backend examples
@@ -52,7 +58,7 @@ requirements.txt     Runtime dependencies
 requirements-dev.txt Test dependencies, including runtime requirements
 requirements-swift.txt Optional Swift client (included in test dependencies)
 constraints.txt      Pinned direct and transitive dependency versions
-.github/workflows/ci.yml  Tests for master and stacked foundation/validation PRs
+.github/workflows/ci.yml  Tests for master and stacked PRs
 ```
 
 Both installation paths use `constraints.txt` to keep dependency versions
@@ -116,20 +122,14 @@ malformed JSON, invalid fields/contexts and the API response contract. Validatio
 tests block network connections and run in an empty temporary working directory
 to check that no storage/index directories are created.
 
-## Planned architecture and follow-up PRs
+## Publication, retrieval and search
 
-The planned data flow is partner JSON-LD → validation → storage and search
-index → retrieval/search API. Basic validation and standalone versioned storage
-are included. See [storage usage and limitations](docs/storage.md); storage does
-not itself validate documents or assign publication timestamps.
+The data flow is JSON-LD → validation → versioned storage and SQLite index →
+retrieval/search API. See [the repository API walkthrough](docs/repository-api.md)
+for requests, response semantics, recovery and limitations, and
+[storage usage](docs/storage.md) for backend details.
 
-<<<<<<< HEAD
-1. Local persistence and versioning.
-2. Repository API, indexing and cross-domain search.
-3. Demo frontend and sample-data walkthrough.
-4. Swift storage backend and deployment support.
-=======
 1. Publication orchestration, repository API, indexing and cross-domain search.
 2. Demo frontend and sample-data walkthrough.
 3. Deployment and environment-based backend/authentication configuration.
->>>>>>> 637f6bf (storage and versioning)
+ 
