@@ -1,0 +1,20 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://nga.gov.au/object/98765",
+  "type": "HumanMadeObject",
+  "_label": "Portrait of Samuel Beckett",
+  "classified_as": [
+    {
+      "id": "http://vocab.getty.edu/aat/300015637",
+      "type": "Type",
+      "_label": "portrait"
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Description",
+      "content": "A photographic portrait of the playwright Samuel Beckett held in the national collection."
+    }
+  ]
+}
