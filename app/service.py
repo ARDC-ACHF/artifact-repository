@@ -2,17 +2,20 @@
 
 This is the single place where an ingest is coordinated so both the HTTP API
 and the sample-data loader share identical behaviour. Storage is the source of
-truth; the FTS index is a rebuildable projection kept consistent per request.
+truth; the FTS index is a rebuildable projection. Use one service writer per
+process and one writer process per backend. Storage/index updates are not a
+distributed transaction; rollback after index failure is best effort.
 """
 
 from __future__ import annotations
 
 import json
+import logging
+import threading
 import urllib.parse
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from app.config import Settings
 from app.extract import extract_body_text, extract_label
 from app.index import FtsIndex, IndexRecord
 from app.models import (
@@ -25,7 +28,7 @@ from app.models import (
 from app.partners import partner_for_iri
 from app.storage import StorageBackend, StoredArtifact
 from app.storage.base import VersionEntry
-from app.validation import LinkedArtValidator
+from app.validation.validator import LinkedArtValidator
 
 
 class ValidationFailed(Exception):
@@ -38,14 +41,13 @@ class ValidationFailed(Exception):
 
 def locator_for(iri: str) -> str:
     """Build the canonical repository locator for an IRI."""
-    return f"/api/v1/artifacts/{urllib.parse.quote(iri, safe='')}"
+    return "/api/v1/artifacts/item?" + urllib.parse.urlencode({"iri": iri})
 
 
 def version_locator_for(iri: str, published_at: str) -> str:
     """Build the locator for a specific version of an IRI."""
-    return (
-        f"/api/v1/artifacts/{urllib.parse.quote(iri, safe='')}"
-        f"/versions/{urllib.parse.quote(published_at, safe='')}"
+    return "/api/v1/artifacts/version?" + urllib.parse.urlencode(
+        {"iri": iri, "published_at": published_at}
     )
 
 
@@ -64,17 +66,14 @@ class RepositoryService:
 
     def __init__(
         self,
-        settings: Settings,
         storage: StorageBackend,
         index: FtsIndex,
         validator: LinkedArtValidator | None = None,
     ) -> None:
-        self._settings = settings
         self._storage = storage
         self._index = index
-        self._validator = validator or LinkedArtValidator(
-            settings.context_url, settings.context_path
-        )
+        self._validator = validator if validator is not None else LinkedArtValidator()
+        self._lock = threading.RLock()
 
     # --- validation ------------------------------------------------------
     def validate(self, payload: Any) -> ValidationResult:
@@ -90,6 +89,10 @@ class RepositoryService:
         (``version_created=False``). Raises :class:`ValidationFailed` if the
         artifact is invalid.
         """
+        with self._lock:
+            return self._publish(payload)
+
+    def _publish(self, payload: Any) -> PublishResponse:
         result = self._validator.validate(payload)
         if not result.valid:
             raise ValidationFailed(result)
@@ -104,6 +107,10 @@ class RepositoryService:
 
         # Idempotent re-publish: identical content => no new version/snapshot.
         if current is not None and self._same_content(current, payload):
+            self._index.upsert(
+                iri, partner=partner, type=type_, label=label,
+                body_text=extract_body_text(payload),
+            )
             return PublishResponse(
                 id=iri,
                 locator=locator_for(iri),
@@ -122,9 +129,9 @@ class RepositoryService:
 
         # Write the new immutable version (advances the latest pointer), then
         # index the current version only. If indexing fails, roll the pointer
-        # back to the prior version and drop the just-written version so the
-        # two never diverge for this request.
-        stored_at = self._storage.put(
+        # back to the prior version and drop the just-written version. This is
+        # best effort, not atomic across storage and SQLite.
+        self._storage.put(
             iri,
             body,
             partner=partner,
@@ -141,8 +148,11 @@ class RepositoryService:
                 body_text=extract_body_text(payload),
             )
         except Exception:
-            self._storage.restore_pointer(iri, prior_published_at)
-            self._storage.delete_version(iri, published_at)
+            try:
+                self._storage.restore_pointer(iri, prior_published_at)
+                self._storage.delete_version(iri, published_at)
+            except Exception:
+                logging.getLogger(__name__).exception("Publication rollback failed for %s", iri)
             raise
 
         return PublishResponse(
@@ -150,7 +160,7 @@ class RepositoryService:
             locator=locator_for(iri),
             partner=partner,
             type=type_,
-            stored_at=stored_at,
+            stored_at=version_locator_for(iri, published_at),
             published_at=published_at,
             version_created=True,
             snapshot_of=prior_published_at,
@@ -168,16 +178,79 @@ class RepositoryService:
     def _unique_published_at(self, iri: str) -> str:
         """A publication date not already used by a version of ``iri``.
 
-        Microsecond precision makes collisions unlikely; a counter suffix is
-        appended in the rare case two *changed* publishes share a timestamp.
+        Advance by real microseconds on collision, keeping storage timestamps
+        canonical even across second or year boundaries.
         """
-        base = _now_published_at()
-        candidate = base
-        counter = 1
+        candidate = _now_published_at()
         while self._storage.get_version(iri, candidate) is not None:
-            candidate = f"{base}-{counter}"
-            counter += 1
+            stamp = datetime.strptime(candidate, "%Y-%m-%dT%H:%M:%S.%fZ")
+            candidate = (stamp + timedelta(microseconds=1)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         return candidate
+
+    # --- deletion --------------------------------------------------------
+    def delete(self, iri: str) -> bool:
+        """Permanently remove all snapshots; partial storage deletion is retryable.
+
+        Update the index before destructive storage work. On storage failure,
+        reconcile the projection with the surviving pointer, without recreating
+        deleted data. Recovery is best effort, not a distributed transaction.
+        """
+        with self._lock:
+            exists = bool(self._storage.list_versions(iri))
+            self._index.delete(iri)
+            try:
+                self._storage.delete(iri)
+            except Exception:
+                self._repair_deletion_index(iri)
+                raise
+            return exists
+
+    def delete_version(self, iri: str, published_at: str) -> bool:
+        """Delete one snapshot, promoting the newest remaining if it is current."""
+        with self._lock:
+            target = self._storage.get_version(iri, published_at)
+            if target is None:
+                return False
+            current = self._storage.get(iri)
+            if current is None or current.published_at != published_at:
+                self._storage.delete_version(iri, published_at)
+                return True
+
+            remaining = [v.published_at for v in self._storage.list_versions(iri)
+                         if v.published_at != published_at]
+            replacement_id = max(remaining) if remaining else None
+            replacement = (self._storage.get_version(iri, replacement_id)
+                           if replacement_id is not None else None)
+            self._index_stored(iri, replacement)
+            try:
+                self._storage.restore_pointer(iri, replacement_id)
+                self._storage.delete_version(iri, published_at)
+            except Exception:
+                try:
+                    # A Swift timeout may mean deletion actually succeeded.
+                    # Never restore a pointer to an absent snapshot.
+                    if self._storage.get_version(iri, published_at) is not None:
+                        self._storage.restore_pointer(iri, published_at)
+                except Exception:
+                    logging.getLogger(__name__).exception("Deletion pointer rollback failed for %s", iri)
+                self._repair_deletion_index(iri)
+                raise
+            return True
+
+    def _index_stored(self, iri: str, stored: StoredArtifact | None) -> None:
+        if stored is None:
+            self._index.delete(iri)
+        else:
+            self._index.upsert(
+                iri, partner=stored.partner, type=stored.type, label=stored.label,
+                body_text=extract_body_text(json.loads(stored.body)),
+            )
+
+    def _repair_deletion_index(self, iri: str) -> None:
+        try:
+            self._index_stored(iri, self._storage.get(iri))
+        except Exception:
+            logging.getLogger(__name__).exception("Deletion index repair failed for %s", iri)
 
     # --- retrieval / listing / search -----------------------------------
     def get_current(self, iri: str) -> StoredArtifact | None:
@@ -240,6 +313,10 @@ class RepositoryService:
     # --- maintenance -----------------------------------------------------
     def reindex(self) -> int:
         """Rebuild the FTS index entirely from the storage backend."""
+        with self._lock:
+            return self._reindex()
+
+    def _reindex(self) -> int:
         self._index.clear()
         count = 0
         for entry in self._storage.list():

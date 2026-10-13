@@ -1,193 +1,173 @@
 # Linked Art Interoperability Repository
 
-A prototype **interoperability repository** for humanities data. Partner
-platforms (stage performances, literature, art) publish
-[Linked Art](https://linked.art/) JSON-LD artifacts to a shared repository via a
-documented JSON API. A Python/FastAPI service validates each artifact against a
-pragmatic Linked Art profile, stores it keyed by the partner's own IRI, and
-indexes it for **cross-domain search**. A minimal web frontend demonstrates the
-interoperability payoff by searching across all partners at once.
+A foundation for a shared repository of humanities data expressed as
+[Linked Art](https://linked.art/) JSON-LD. The intended service will let partner
+platforms publish artifacts for cross-domain discovery.
 
-The system is **local-first**: it runs on a laptop with zero cloud dependencies
-(filesystem storage + local SQLite index) and deploys to OpenStack against
-Swift by changing only environment variables — no code changes.
+## Current scope
 
-```mermaid
-graph TD
-  Partner[Partner platform] -->|POST JSON-LD| API[FastAPI service]
-  API --> V[LinkedArtValidator pyld]
-  V -->|valid| Store[(Storage: fs or Swift)]
-  V -->|valid| Idx[(SQLite FTS5 index)]
-  V -->|invalid 422| Partner
-  Browser[Demo frontend] -->|GET /search| API
-  API -->|query| Idx
-  API -->|fetch by IRI| Store
-```
+The application provides offline Linked Art profile validation, versioned
+publication, current/historical retrieval, listing and filtered full-text search.
+Authenticated DELETE endpoints remove individual snapshots or entire artifacts;
+deleting the current snapshot promotes the newest remaining snapshot. See
+[deletion behavior and examples](docs/repository-api.md#permanent-deletion).
+Filesystem storage and a SQLite FTS5 index are initialized lazily on the first
+repository request; health, documentation and validation remain storage-free.
+API access requires a configured shared username/password; tests supply their
+own credentials and require no external services.
+Swift storage can be injected through the Python application factory; deployment
+and environment-based backend configuration are outside this PR.
 
-## Local quickstart (no cloud needed)
+## Local quickstart
 
-Requires Python 3.11+.
+Use Python 3.11 (the version tested in CI).
 
 ```bash
-# 1. Create a virtual environment and install dependencies
-python -m venv .venv
-source .venv/bin/activate            # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-
-# 2. Run the service (defaults to the local filesystem backend + SQLite)
-uvicorn app.main:app --reload
-
-# 3. In another terminal, load the bundled sample artifacts
-python sample_data/load.py           # POSTs to http://localhost:8000
-
-# 4. Open the demo
-#    Frontend UI : http://localhost:8000/
-#    API docs    : http://localhost:8000/docs
-#    Health      : http://localhost:8000/health
-```
-
-Search for **`Beckett`** in the UI to see mixed results across performances
-(`Activity`), literature (`LinguisticObject`) and art (`HumanMadeObject`), then
-narrow with the type/partner filters. Click a result to see the stored JSON-LD
-and a link back to the partner's original resolvable IRI.
-
-> Data is written under `./data/` (git-ignored). Delete that directory to reset.
-
-## Configuration
-
-All configuration is via environment variables (or a local `.env` file).
-
-| Variable | Default | Purpose |
-|---|---|---|
-| `STORAGE_BACKEND` | `fs` | `fs` (local filesystem) or `swift` (OpenStack). |
-| `DATA_DIR` | `./data/artifacts` | Artifact directory when `STORAGE_BACKEND=fs`. |
-| `INDEX_PATH` | `./data/index.sqlite3` | SQLite FTS5 index location. |
-| `SWIFT_CONTAINER` | `artifacts` | Swift container name (swift mode). |
-| `OS_AUTH_URL` | — | Keystone auth URL (swift mode). |
-| `OS_APPLICATION_CREDENTIAL_ID` / `OS_APPLICATION_CREDENTIAL_SECRET` | — | Preferred Swift auth. |
-| `OS_USERNAME` / `OS_PASSWORD` / `OS_PROJECT_NAME` | — | Alternative Swift auth. |
-| `OS_USER_DOMAIN_NAME` / `OS_PROJECT_DOMAIN_NAME` | `Default` | Keystone domains. |
-| `OS_REGION_NAME` | — | Optional Swift region. |
-
-## API
-
-Base path `/api/v1`. Full interactive docs at `/docs` (OpenAPI).
-
-| Method & path | Description |
-|---|---|
-| `POST /api/v1/artifacts` | Validate and store a Linked Art artifact. `201` on success, `422` with structured errors on failure. Response reports `published_at`, `version_created` and `snapshot_of`. |
-| `POST /api/v1/artifacts/validate` | Dry-run validation only; never stores. |
-| `GET /api/v1/artifacts/{iri}` | Retrieve the current version's JSON-LD verbatim by URL-encoded IRI; `X-Published-At` header carries its publication date. |
-| `GET /api/v1/artifacts/{iri}/versions` | List the full version history newest-first, each with `is_current`. `404` if the IRI is unknown. |
-| `GET /api/v1/artifacts/{iri}/versions/{published_at}` | Retrieve a specific version (current or snapshot) verbatim by its URL-encoded publication date. |
-| `GET /api/v1/artifacts` | Paged list with `partner`/`type`/`limit`/`offset`. |
-| `GET /api/v1/search` | Cross-domain search: `q` (required) plus repeatable `type`/`partner`. |
-| `GET /health` | Storage + index connectivity. |
-
-Artifacts are identified by the partner's own `id` IRI (e.g.
-`https://ausstage.org.au/event/12345`), which is preserved verbatim and remains
-the lookup handle. See the plan/spec for the supported pragmatic Linked Art
-type profile.
-
-### Versioning & snapshots
-
-Re-publishing an IRI whose content differs from the current version stores the
-new version immutably and retains the previous one as a **dated snapshot**
-(identified by its server-stamped UTC publication date). An identical
-re-publish is an idempotent no-op (`version_created: false`) that creates no new
-snapshot. Every version is `published_at` — that timestamp is both its identity
-and its snapshot date — and snapshots are kept **indefinitely** and stay
-retrievable via `GET .../versions/{published_at}`. Only current versions are
-indexed, so search returns a single hit per artifact. The demo shows this off:
-`sample_data/load.py` re-publishes an updated variant from
-`sample_data/updates/`, and the frontend detail view lists the version history
-and lets you open any snapshot.
-
-## Docker
-
-```bash
-docker build -t linkedart-repo .
-
-# Local mode (filesystem backend), data persisted on a named volume
-docker run --rm -p 8000:8000 -v linkedart-data:/data linkedart-repo
-```
-
-## OpenStack / Swift deployment
-
-The same image runs against Swift by switching the backend and providing
-credentials — no code changes:
-
-```bash
-docker run -d -p 8000:8000 \
-  -e STORAGE_BACKEND=swift \
-  -e OS_AUTH_URL="https://keystone.example.org:5000/v3" \
-  -e OS_APPLICATION_CREDENTIAL_ID="<id>" \
-  -e OS_APPLICATION_CREDENTIAL_SECRET="<secret>" \
-  -e SWIFT_CONTAINER="artifacts" \
-  -e INDEX_PATH="/data/index.sqlite3" \
-  -v linkedart-index:/data \
-  linkedart-repo
-```
-
-Swift is the source of truth; the SQLite index is a rebuildable projection
-(`RepositoryService.reindex()` re-derives it from stored objects). Keep the
-index on a persistent volume so it survives restarts.
-
-## Smoke test (works in both modes)
-
-```bash
-# health
-curl -s localhost:8000/health
-
-# publish a sample
-curl -s -X POST localhost:8000/api/v1/artifacts \
-  -H 'Content-Type: application/ld+json' \
-  --data-binary @sample_data/artifacts/ausstage_event_12345.json
-
-# search across domains
-curl -s "localhost:8000/api/v1/search?q=Beckett"
-```
-
-## Tests
-
-```bash
+python3.11 -m venv .venv
 source .venv/bin/activate
-pytest -q
+python -m pip install -r requirements-dev.txt
+python -m pytest
+export API_AUTH_USERNAME=reviewer
+# Supply API_AUTH_PASSWORD securely in the environment before starting.
+uvicorn app.main:app --reload
 ```
 
-Tests run entirely against the filesystem backend and a temporary SQLite index,
-so no Swift/OpenStack access is required.
+On Windows, activate with `.venv\Scripts\activate` instead.
+For a runtime-only installation, use `requirements.txt`.
+
+- Health: <http://localhost:8000/health> returns HTTP 200 and `{"status":"ok"}`.
+- Interactive API docs: <http://localhost:8000/docs>.
+- OpenAPI schema: <http://localhost:8000/openapi.json>.
+
+`/health` indicates application liveness only; it does not check storage or
+index readiness. There is no frontend at `/` yet.
+
+## API authentication
+
+Set `API_AUTH_USERNAME` and `API_AUTH_PASSWORD` before starting the application.
+Use a long, randomly generated password; never commit it. Environment values are
+read when the application is created; restart to rotate credentials. `.env` files
+are not automatically loaded. The username must not contain a colon.
+
+All `/api` and `/api/...` requests require HTTP Basic authentication, including
+validation and read-only requests. Missing/invalid credentials return 401 with
+a `WWW-Authenticate` challenge. Missing/blank configuration returns 503 and
+never enables anonymous access. `/health`, `/docs`, `/redoc` and `/openapi.json`
+remain public; health reports liveness, not authentication readiness.
+
+In `/docs`, select **Authorize** and enter the configured username/password.
+For curl, use `--user "$API_AUTH_USERNAME"` to prompt for the password, as below.
+**Use HTTPS outside localhost:** Basic credentials are encoded, not encrypted.
+Do not log Authorization headers or expose this development server directly.
+
+`app/auth.py` separates the ASGI middleware from authentication providers.
+`create_app(auth_providers=(... ,))` can inject multiple providers, each with a
+unique authorization scheme, async `authenticate(credentials)` method, challenge
+and OpenAPI security definition. The middleware selects only the supplied
+scheme, rejects duplicate Authorization headers and exposes the verified
+`Principal` as `request.state.principal`. An empty provider tuple denies access.
+API routes must stay under `/api/` to inherit this boundary.
+
+Only Basic is implemented. A future Bearer provider can validate OAuth/OIDC
+access tokens (signature, issuer, audience and expiry) without changing routes.
+Login flows, permissions/scopes, individual accounts, rate limiting and browser
+CSRF protection are not implemented. All holders of the shared credential have
+equal read/write access; this is not a complete production security solution.
 
 ## Project layout
 
-```
-app/
-  main.py            FastAPI app: lifespan wiring, routers, static frontend
-  config.py          pydantic-settings configuration
-  models.py          shared response/validation models
-  partners.py        IRI host -> partner slug
-  extract.py         label + searchable text extraction
-  service.py         RepositoryService: validate -> store -> index (+ reindex)
-  deps.py            FastAPI dependency accessors
-  api/               health, artifacts (publish/validate/get/list), search
-  validation/        LinkedArtValidator + offline JSON-LD context loader
-  storage/           StorageBackend interface, fs_store, swift_store
-  index/             SQLite FTS5 index
-  web/               index.html + app.js demo frontend (with version history)
-sample_data/         example artifacts per domain + loader script
-  artifacts/         base artifacts (one per partner/domain)
-  updates/           updated variants re-published to demo snapshotting
-tests/               pytest suite (validator, storage/index, API, snapshots)
-Dockerfile
-requirements.txt
+```text
+app/__init__.py       Package metadata
+app/main.py           Application factory, health and validation endpoints
+app/api.py            Publication, retrieval, listing and search endpoints
+app/auth.py           Authentication middleware and pluggable Basic provider
+app/service.py        Validation/storage/index orchestration and reindexing
+app/index/            SQLite FTS5 search projection
+app/extract.py        Label and searchable-text extraction
+app/partners.py       Identifier host to partner mapping
+app/models.py         Validation and repository response contracts
+app/validation/      Profile checks and bundled offline context
+app/storage/         Shared contract, filesystem and Swift versioned storage
+docs/storage.md      Storage contract and runnable backend examples
+tests/test_health.py  Startup, health and documentation smoke tests
+tests/test_validation.py  Validator and API contract tests
+tests/test_storage.py  Shared offline backend contract and failure tests
+tests/fixtures/       Representative prototype documents from three domains
+requirements.txt     Runtime dependencies
+requirements-dev.txt Test dependencies, including runtime requirements
+requirements-swift.txt Optional Swift client (included in test dependencies)
+constraints.txt      Pinned direct and transitive dependency versions
+.github/workflows/ci.yml  Tests for master and stacked PRs
 ```
 
-## Notes & limitations
+Both installation paths use `constraints.txt` to keep dependency versions
+consistent. When updating dependencies, update the pins together and rerun
+`python -m pip check` and `python -m pytest` in a fresh virtual environment.
+Virtual environments, Python/test caches, local environment files and future
+runtime `data/` are excluded from Git.
 
-- Validation is a **pragmatic profile** check (required fields, supported types,
-  clean JSON-LD expansion against the bundled context), not full
-  CIDOC-CRM/SHACL conformance.
-- The Linked Art context is bundled offline at
-  `app/validation/context/linked-art.json`; refresh it by re-downloading from
-  `https://linked.art/ns/v1/linked-art.json`.
-- No auth, rate limiting, or async ingestion — this is a demoable prototype.
+## Basic validation
+
+`POST /api/v1/artifacts/validate` accepts a JSON document and never stores it.
+Valid input returns HTTP 200 with `{"valid":true,"errors":[]}`. Malformed JSON
+and failed validation return HTTP 422 with the same envelope and errors
+containing `path`, `code` and `message`.
+
+From the repository root, with the server running:
+
+```bash
+curl -i --user "$API_AUTH_USERNAME" http://localhost:8000/api/v1/artifacts/validate \
+  -H 'Content-Type: application/json' \
+  --data-binary @tests/fixtures/nga_object_98765.json
+
+curl -i --user "$API_AUTH_USERNAME" http://localhost:8000/api/v1/artifacts/validate \
+  -H 'Content-Type: application/json' \
+  -d '{"@context":"https://linked.art/ns/v1/linked-art.json","id":"https://example.org/1","type":"Unknown"}'
+```
+
+The second request returns HTTP 422:
+
+```json
+{"valid":false,"errors":[{"path":"$.type","code":"unsupported_type","message":"Top-level 'type' is not a supported Linked Art class."}]}
+```
+
+### Accepted profile
+
+- The document must be an object with non-empty string `@context`, `id` and `type`.
+- `@context` must be exactly `https://linked.art/ns/v1/linked-art.json`.
+  Inline contexts, context arrays, alternative URLs and fragments are rejected.
+  The same restriction applies to any explicit nested contexts; the bundled
+  context's own scoped definitions remain supported.
+- `id` must be non-blank. Absolute IRI syntax, uniqueness and resolvability
+  are **not** checked yet; relative identifiers may pass.
+- Supported top-level types: `HumanMadeObject`, `LinguisticObject`, `Text`,
+  `Activity`, `Event`, `Person`, `Group`, `Place`, `Set`, `VisualItem`.
+- Structurally valid input must expand as JSON-LD using the local context.
+  No remote documents are fetched. See [context attribution](app/validation/context/README.md).
+
+Error codes are `invalid_json` (malformed body), `invalid_type` (wrong JSON
+shape or field type), `missing_field` (absent, null, blank or empty-list required
+field), `unsupported_type`, `unsupported_context`, and `invalid_jsonld`.
+Paths use `$` for the document and `$.field` / `[index]` for fields and entries.
+Structural errors are collected before expansion to avoid redundant errors.
+
+These are basic profile checks, **not full Linked Art, CIDOC-CRM or SHACL
+conformance**. Unknown properties may be ignored by JSON-LD expansion, and
+nested entities are not checked against a domain schema. Rate/body-size limits
+and production hardening are deferred.
+
+`python -m pytest` exercises all supported types, three representative fixtures,
+malformed JSON, invalid fields/contexts and the API response contract. Validation
+tests block network connections and run in an empty temporary working directory
+to check that no storage/index directories are created.
+
+## Publication, retrieval and search
+
+The data flow is JSON-LD → validation → versioned storage and SQLite index →
+retrieval/search API. See [the repository API walkthrough](docs/repository-api.md)
+for requests, response semantics, recovery and limitations, and
+[storage usage](docs/storage.md) for backend details.
+
+This remains an incremental, single-process implementation, not a production
+service. OAuth/OIDC, multi-writer coordination and deployment configuration
+are deferred. No demo UI or sample-loading tooling is included.
