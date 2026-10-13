@@ -20,10 +20,10 @@ and environment-based backend configuration are outside this PR.
 
 ## Local quickstart
 
-Use Python 3.11 (the version tested in CI).
+Use Python 3.13 (the version tested in CI).
 
 ```bash
-python3.11 -m venv .venv
+python3.13 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements-dev.txt
 python -m pytest
