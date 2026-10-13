@@ -1,4 +1,4 @@
-# Resolved with Python 3.11; shared runtime and test dependency pins.
+# Resolved with Python 3.13; shared runtime and test dependency pins.
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
