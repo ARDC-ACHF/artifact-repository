@@ -12,60 +12,91 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncIterator
+from threading import Lock
 
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
 
 from app import __version__
-from app.config import get_settings
+from app.api import read_payload, repository_router
+from app.auth import AuthenticationProvider, install_authentication, providers_from_environment
 from app.index import FtsIndex
-from app.service import RepositoryService
-from app.storage import build_storage
-
-_WEB_DIR = Path(__file__).resolve().parent / "web"
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    settings = get_settings()
-    settings.ensure_local_dirs()
-
-    app.state.settings = settings
-    app.state.storage = build_storage(settings)
-    app.state.index = FtsIndex(settings.index_path)
-    app.state.service = RepositoryService(
-        settings, app.state.storage, app.state.index
-    )
-    try:
-        yield
-    finally:
-        app.state.index.close()
+from app.models import ValidationResult
+from app.service import RepositoryService, ValidationFailed
+from app.storage.fs_store import FilesystemStore
+from app.validation.validator import LinkedArtValidator
 
 
-def create_app() -> FastAPI:
+def create_app(
+    *, service: RepositoryService | None = None, data_dir: Path = Path("data"),
+    auth_providers: tuple[AuthenticationProvider, ...] | None = None,
+) -> FastAPI:
+    owned_index = None
+    initialization_lock = Lock()
+
+    def get_service():
+        nonlocal service, owned_index
+        with initialization_lock:
+            if service is None:
+                storage = FilesystemStore(data_dir / "artifacts")
+                owned_index = FtsIndex(data_dir / "index.sqlite3")
+                service = RepositoryService(storage, owned_index)
+            return service
+
+    @asynccontextmanager
+    async def lifespan(app):
+        nonlocal service, owned_index
+        try:
+            yield
+        finally:
+            if owned_index is not None:
+                owned_index.close()
+                owned_index = None
+                service = None
+
     app = FastAPI(
+        lifespan=lifespan,
         title="Linked Art Interoperability Repository",
         version=__version__,
         description=(
-            "A prototype repository that ingests, validates and stores Linked Art "
-            "JSON-LD artifacts from partner platforms and offers cross-domain search."
+            "API foundation for a Linked Art interoperability repository. "
+            "Offline validation, versioned publication, retrieval and full-text search."
         ),
-        lifespan=lifespan,
     )
+    validator = LinkedArtValidator()
+    app.include_router(repository_router(get_service))
 
-    # Routers are imported lazily to keep import-time side effects minimal.
-    from app.api import artifacts, health, search
+    @app.exception_handler(ValidationFailed)
+    async def validation_failed(request, exc):
+        return JSONResponse(status_code=422, content=exc.result.model_dump())
 
-    app.include_router(health.router)
-    app.include_router(artifacts.router)
-    app.include_router(search.router)
+    @app.post(
+        "/api/v1/artifacts/validate",
+        response_model=ValidationResult,
+        responses={422: {"model": ValidationResult}},
+        openapi_extra={
+            "requestBody": {
+                "required": True,
+                "content": {"application/json": {"schema": {}}},
+            }
+        },
+    )
+    async def validate_artifact(request: Request, response: Response) -> ValidationResult:
+        """Check a JSON document without storing it."""
+        payload = await read_payload(request)
+        result = validator.validate(payload)
+        if not result.valid:
+            response.status_code = 422
+        return result
 
-    # Serve the demo frontend at the root if present.
-    if _WEB_DIR.is_dir():
-        app.mount("/", StaticFiles(directory=str(_WEB_DIR), html=True), name="web")
+    @app.get("/health")
+    def health() -> dict[str, str]:
+        """Report application liveness, not storage or index readiness."""
+        return {"status": "ok"}
 
+    install_authentication(app, providers_from_environment() if auth_providers is None else tuple(auth_providers))
     return app
 
 
 app = create_app()
+

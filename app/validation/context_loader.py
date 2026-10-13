@@ -18,14 +18,13 @@ from pyld import jsonld
 def build_document_loader(context_url: str, context_path: Path) -> Callable[..., dict]:
     """Return a pyld document loader bound to a bundled local context.
 
-    Requests for ``context_url`` (with or without a trailing ``#``/fragment)
+    Requests for exactly ``context_url``
     return the on-disk context; any other URL raises a JSON-LD load error.
     """
     context_doc = json.loads(Path(context_path).read_text(encoding="utf-8"))
-    normalized_target = context_url.split("#", 1)[0]
 
     def loader(url: str, options: dict[str, Any] | None = None) -> dict:
-        if url.split("#", 1)[0] == normalized_target:
+        if url == context_url:
             return {
                 "contextUrl": None,
                 "documentUrl": url,
