@@ -62,5 +62,6 @@ def test_partner_fallback_slug(settings):
         "_label": "Unknown partner object",
     }
     resp = svc.publish(art)
-    # Fallback derives a slug from the first host label (after stripping www.).
-    assert resp.partner == "collections"
+    # Fallback derives a slug from the domain, ignoring service subdomains.
+    assert resp.partner == "example"
+    assert svc.search("Unknown", partners=["example"])[0] == 1
