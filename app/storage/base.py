@@ -128,4 +128,3 @@ class StorageBackend(ABC):
     @abstractmethod
     def health(self) -> dict[str, object]:
         """Return backend status; connection and authentication errors propagate."""
-
