@@ -1,8 +1,5 @@
 """FastAPI application entrypoint.
 
-Builds the storage backend and search index at startup (both local-first, so no
-environment is required), mounts the API routers and the static demo frontend.
-
 Run locally with::
 
     uvicorn app.main:app --reload
@@ -99,4 +96,3 @@ def create_app(
 
 
 app = create_app()
-
