@@ -38,6 +38,9 @@ coverage.json
 .env.*
 !.env.example
 
+# Development server process tracking
+.uvicorn.pid
+
 # Interactive Python and notebook state
 .ipynb_checkpoints/
 .python_history
