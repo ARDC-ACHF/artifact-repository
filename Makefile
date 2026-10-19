@@ -7,9 +7,11 @@ PORT ?= 8000
 VENV_PYTHON := $(VENV)/bin/python
 PID_FILE := .uvicorn.pid
 COMPOSE ?= docker compose
+TEST_IMAGE ?= artifact-repository-test
+TEST_ARGS ?=
 export HOST PORT
 
-.PHONY: help install install-dev start stop up down stop-local docker-up docker-down docker-logs docker-ps clean delete-db test
+.PHONY: help install install-dev start stop up down stop-local docker-up docker-down docker-logs docker-ps docker-test clean delete-db test
 
 help:
 	@printf '%s\n' \
@@ -23,6 +25,7 @@ help:
 	  'make docker-down  Remove Compose containers and networks, preserving data' \
 	  'make docker-logs  Follow container logs' \
 	  'make docker-ps    Show container status' \
+	  'make docker-test  Build and run tests in an isolated disposable container' \
 	  'make test         Run the test suite' \
 	  'make clean        Remove Python caches, coverage and build output' \
 	  'make delete-db    Stop the server and delete the SQLite search index' \
@@ -69,6 +72,10 @@ docker-logs:
 docker-ps:
 	$(COMPOSE) ps
 
+docker-test:
+	docker build --target test --tag "$(TEST_IMAGE)" .
+	docker run --rm --network none "$(TEST_IMAGE)" python -m pytest $(TEST_ARGS)
+
 stop-local:
 	@set -eu; \
 	if ! test -f "$(PID_FILE)"; then echo 'No make-managed server to stop.'; exit 0; fi; \
@@ -91,7 +98,7 @@ stop-local:
 	echo 'Server stopped.'
 
 test:
-	"$(VENV_PYTHON)" -m pytest
+	"$(VENV_PYTHON)" -m pytest $(TEST_ARGS)
 
 clean:
 	find app tests -type d -name __pycache__ -prune -exec rm -rf {} +

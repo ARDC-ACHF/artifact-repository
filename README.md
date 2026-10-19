@@ -56,6 +56,13 @@ Export `API_AUTH_USERNAME` and `API_AUTH_PASSWORD` first, or set them in an
 untracked `.env` file for Compose. API access stays disabled without credentials.
 Use `make docker-logs` to follow logs and `make docker-ps` to view status.
 
+Run `make docker-test` to build a test image with development dependencies and
+run pytest in a disposable container. It has no network access, host data mounts,
+or application credentials. The container is removed even if tests fail, and
+the command reports test failures. To select tests, use
+`make docker-test TEST_ARGS='-q tests/test_health.py'`; `make test` also accepts
+`TEST_ARGS`. The default application image excludes test dependencies.
+
 `make stop` stops the local development server and runs Compose teardown,
 removing this project's containers and network. `make docker-down` does only
 the Compose teardown; `make stop-local` stops only the local server. Docker
