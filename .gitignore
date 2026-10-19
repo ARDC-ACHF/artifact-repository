@@ -1,13 +1,56 @@
-.venv/
-venv/
+# Python bytecode and compiled extensions
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build output and package metadata
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+pip-wheel-metadata/
+
+# Test, coverage, type-checker and linter output
 .pytest_cache/
+.tox/
+.nox/
+.hypothesis/
 .coverage
+.coverage.*
 htmlcov/
+coverage.xml
+coverage.json
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+
+# Local environment configuration (keep a shareable example)
 .env
 .env.*
 !.env.example
-/data/
+
+# Development server process tracking
+.uvicorn.pid
+
+# Interactive Python and notebook state
+.ipynb_checkpoints/
+.python_history
+
+# Editor and operating-system files
 .DS_Store
+._*
+Thumbs.db
+Desktop.ini
 .idea/
+*.swp
+*.swo
+*~

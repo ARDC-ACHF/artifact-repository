@@ -35,6 +35,41 @@ uvicorn app.main:app --reload
 On Windows, activate with `.venv\Scripts\activate` instead.
 For a runtime-only installation, use `requirements.txt`.
 
+On macOS/Linux, `make install-dev` creates `.venv` and installs development
+dependencies; `make install` installs runtime dependencies only. After exporting
+the authentication variables above, use `make start` to run with automatic reload,
+and Ctrl-C or `make stop` from another terminal to stop. Override defaults with,
+for example, `make start PORT=8001`. Use `make test` for tests and `make help`
+for all commands.
+
+`make clean` removes caches, coverage reports and build output, preserving the
+virtual environment and data. `make delete-db` stops the make-managed servers and
+deletes `data/index.sqlite3` and its SQLite sidecar files. Stop any independently
+launched servers first. Artifact snapshots are preserved, but existing artifacts
+need reindexing via `RepositoryService.reindex()` to appear in search again.
+The database is currently tracked in Git, so deleting it also appears as a Git change.
+
+With Docker and Docker Compose installed, use `make docker-up` to build the image
+and start the app in the background, waiting for its health check. It serves
+<http://127.0.0.1:8000>; `make docker-up PORT=8001` changes the host port.
+Export `API_AUTH_USERNAME` and `API_AUTH_PASSWORD` first, or set them in an
+untracked `.env` file for Compose. API access stays disabled without credentials.
+Use `make docker-logs` to follow logs and `make docker-ps` to view status.
+
+Run `make docker-test` to build a test image with development dependencies and
+run pytest in a disposable container. It has no network access, host data mounts,
+or application credentials. The container is removed even if tests fail, and
+the command reports test failures. To select tests, use
+`make docker-test TEST_ARGS='-q tests/test_health.py'`; `make test` also accepts
+`TEST_ARGS`. The default application image excludes test dependencies.
+
+`make stop` stops the local development server and runs Compose teardown,
+removing this project's containers and network. `make docker-down` does only
+the Compose teardown; `make stop-local` stops only the local server. Docker
+must be running for Compose teardown to succeed. The `./data` bind mount keeps
+data on the host across container removal; built images are also retained.
+Local and container servers share this data, so stop one before starting the other.
+
 - Health: <http://localhost:8000/health> returns HTTP 200 and `{"status":"ok"}`.
 - Interactive API docs: <http://localhost:8000/docs>.
 - OpenAPI schema: <http://localhost:8000/openapi.json>.
@@ -103,8 +138,8 @@ constraints.txt      Pinned direct and transitive dependency versions
 Both installation paths use `constraints.txt` to keep dependency versions
 consistent. When updating dependencies, update the pins together and rerun
 `python -m pip check` and `python -m pytest` in a fresh virtual environment.
-Virtual environments, Python/test caches, local environment files and future
-runtime `data/` are excluded from Git.
+Virtual environments, Python/test caches and local environment files are
+excluded from Git. The `data/` directory remains tracked.
 
 ## Basic validation
 
