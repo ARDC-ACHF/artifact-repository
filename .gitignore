@@ -38,10 +38,6 @@ coverage.json
 .env.*
 !.env.example
 
-# Application runtime storage and SQLite index
-# Already tracked files remain tracked; this excludes new runtime files.
-/data/
-
 # Interactive Python and notebook state
 .ipynb_checkpoints/
 .python_history
