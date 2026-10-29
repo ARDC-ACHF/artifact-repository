@@ -60,14 +60,36 @@ def providers_from_environment() -> tuple[AuthenticationProvider, ...]:
     return (BasicAuthProvider(username, password),)
 
 
+PUBLIC_READ_PATHS = frozenset({
+    "/api/v1/search",
+    "/api/v1/artifacts",
+    "/api/v1/artifacts/item",
+    "/api/v1/artifacts/version",
+    "/api/v1/artifacts/versions",
+})
+PUBLIC_READ_METHODS = frozenset({"GET", "HEAD"})
+PUBLIC_READ_PRINCIPAL = Principal("anonymous", "public-read")
+_TRUTHY = {"1", "true", "yes", "on"}
+
+
+def public_read_from_environment() -> bool:
+    return os.environ.get("DEMO_PUBLIC_READ", "").strip().lower() in _TRUTHY
+
+
 def is_api_path(path: str) -> bool:
     return path == "/api" or path.startswith("/api/")
 
 
+def is_public_read(method: str, path: str) -> bool:
+    """Exact-match allow-list of anonymous safe reads; no prefixes or trailing-slash variants."""
+    return method.upper() in PUBLIC_READ_METHODS and path in PUBLIC_READ_PATHS
+
+
 class APIAuthenticationMiddleware:
-    def __init__(self, app, providers: tuple[AuthenticationProvider, ...]):
+    def __init__(self, app, providers: tuple[AuthenticationProvider, ...], public_read: bool = False):
         self.app = app
         self.providers = {provider.scheme.lower(): provider for provider in providers}
+        self.public_read = bool(public_read)
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
@@ -79,6 +101,10 @@ class APIAuthenticationMiddleware:
         if root_path and path.startswith(root_path + "/"):
             path = path[len(root_path):]
         if not is_api_path(path):
+            await self.app(scope, receive, send)
+            return
+        if self.public_read and is_public_read(scope["method"], path):
+            scope.setdefault("state", {})["principal"] = PUBLIC_READ_PRINCIPAL
             await self.app(scope, receive, send)
             return
         if not self.providers:
@@ -102,11 +128,11 @@ class APIAuthenticationMiddleware:
         await self.app(scope, receive, send)
 
 
-def install_authentication(app, providers: tuple[AuthenticationProvider, ...]):
+def install_authentication(app, providers: tuple[AuthenticationProvider, ...], public_read: bool = False):
     schemes = [provider.scheme.lower() for provider in providers]
     if len(schemes) != len(set(schemes)):
         raise ValueError("Authentication provider schemes must be unique")
-    app.add_middleware(APIAuthenticationMiddleware, providers=providers)
+    app.add_middleware(APIAuthenticationMiddleware, providers=providers, public_read=public_read)
     original_openapi = app.openapi
 
     def openapi():
@@ -120,6 +146,8 @@ def install_authentication(app, providers: tuple[AuthenticationProvider, ...]):
                 for method, operation in operations.items():
                     if method in {"get", "post", "put", "patch", "delete", "head", "options", "trace"}:
                         operation["security"] = [{name: []} for name in definitions]
+                        if public_read and is_public_read(method, path):
+                            operation["security"].append({})
                         operation["responses"].update({
                             "401": {"description": "Missing or invalid credentials"},
                             "503": {"description": "API authentication is not configured"},

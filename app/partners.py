@@ -16,10 +16,14 @@ import urllib.parse
 HOST_TO_PARTNER: dict[str, str] = {
     "ausstage.org.au": "ausstage",
     "www.ausstage.org.au": "ausstage",
+    "ausstage.edu.au": "ausstage",
+    "www.ausstage.edu.au": "ausstage",
     "austlit.edu.au": "austlit",
     "www.austlit.edu.au": "austlit",
     "nga.gov.au": "nga",
     "www.nga.gov.au": "nga",
+    "daao.org.au": "daao",
+    "www.daao.org.au": "daao",
 }
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
