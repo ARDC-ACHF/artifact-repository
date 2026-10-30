@@ -46,6 +46,10 @@ export default function SearchPage() {
   const [result, setResult] = useState({ key: null, status: 'loading', total: 0, items: [], error: null });
 
   useEffect(() => {
+    document.title = 'ACHF Explorer · Demo';
+  }, []);
+
+  useEffect(() => {
     const controller = new AbortController();
     const { q, partners, types, page, view } = state;
     const query = view === 'map'

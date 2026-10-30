@@ -183,7 +183,7 @@ fi
 
 cat <<EOF
 
-  Linked Art repository demo  ->  http://localhost:$PORT
+  ACHF Explorer demo  ->  http://localhost:$PORT
     API docs:      http://localhost:$PORT/docs
     Try searching: Godot, Namatjira, Belvoir, Streeton, Doll
     Reads are public (DEMO_PUBLIC_READ=1); writes need Basic auth, $CREDENTIALS_HINT

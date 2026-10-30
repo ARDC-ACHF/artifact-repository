@@ -18,10 +18,10 @@ export default function App() {
     <div className="app">
       <header className="site-header">
         <div className="site-header__inner">
-          <Link to="/" className="brand" aria-label="Linked Art Repository home">
-            <span className="brand__mark" aria-hidden="true">LA</span>
+          <Link to="/" className="brand" aria-label="ACHF Explorer home">
+            <span className="brand__mark" aria-hidden="true">AE</span>
             <span className="brand__text">
-              <strong>Linked Art Repository</strong>
+              <strong>ACHF Explorer</strong>
               <span>Australian cultural records, linked</span>
             </span>
           </Link>
