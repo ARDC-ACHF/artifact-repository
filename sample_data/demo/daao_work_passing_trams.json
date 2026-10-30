@@ -1,0 +1,138 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.daao.org.au/bio/clarice-beckett/works/demo-passing-trams/",
+  "type": "HumanMadeObject",
+  "_label": "Passing Trams (Clarice Beckett)",
+  "classified_as": [
+    {
+      "id": "http://vocab.getty.edu/aat/300033618",
+      "type": "Type",
+      "_label": "painting"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Passing Trams"
+    }
+  ],
+  "produced_by": {
+    "type": "Production",
+    "_label": "Production of Passing Trams",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "c. 1931"
+        }
+      ],
+      "begin_of_the_begin": "1931-01-01T00:00:00Z",
+      "end_of_the_end": "1931-12-31T23:59:59Z"
+    },
+    "carried_out_by": [
+      {
+        "id": "https://www.daao.org.au/bio/clarice-beckett/",
+        "type": "Person",
+        "_label": "Clarice Beckett"
+      }
+    ]
+  },
+  "made_of": [
+    {
+      "id": "http://vocab.getty.edu/aat/300015050",
+      "type": "Material",
+      "_label": "oil paint"
+    },
+    {
+      "type": "Material",
+      "_label": "board"
+    }
+  ],
+  "current_location": {
+    "type": "Place",
+    "_label": "Art Gallery of South Australia, Adelaide",
+    "defined_by": "POINT(138.6043 -34.9208)"
+  },
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Soft, tonal view of trams moving through a Melbourne street, typical of Beckett's atmospheric late work."
+    },
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "type": "Type",
+          "_label": "materials statement"
+        }
+      ],
+      "_label": "Medium",
+      "content": "oil on board"
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "Passing Trams",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "Passing Trams",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Clarice_Beckett_-_Passing_trams_-_Google_Art_Project.jpg/960px-Clarice_Beckett_-_Passing_trams_-_Google_Art_Project.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Clarice Beckett. Public domain. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Clarice_Beckett_-_Passing_trams_-_Google_Art_Project.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Clarice Beckett on DAAO",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.daao.org.au/bio/clarice-beckett/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.ausstage.edu.au/pages/contributor/demo-ray-lawler",
+  "type": "Person",
+  "_label": "Ray Lawler",
+  "classified_as": [
+    {
+      "type": "Type",
+      "_label": "playwright"
+    },
+    {
+      "type": "Type",
+      "_label": "actor"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Ray Lawler"
+    }
+  ],
+  "born": {
+    "type": "Birth",
+    "_label": "Birth of Ray Lawler",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "1921"
+        }
+      ],
+      "begin_of_the_begin": "1921-01-01T00:00:00Z",
+      "end_of_the_end": "1921-12-31T23:59:59Z"
+    },
+    "took_place_at": [
+      {
+        "type": "Place",
+        "_label": "Footscray, Victoria",
+        "defined_by": "POINT(144.9 -37.8)"
+      }
+    ]
+  },
+  "died": {
+    "type": "Death",
+    "_label": "Death of Ray Lawler",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "2024"
+        }
+      ],
+      "begin_of_the_begin": "2024-01-01T00:00:00Z",
+      "end_of_the_end": "2024-12-31T23:59:59Z"
+    }
+  },
+  "carried_out": [
+    {
+      "id": "https://www.ausstage.edu.au/pages/event/demo-summer-of-the-seventeenth-doll-1955",
+      "type": "Activity",
+      "_label": "The Summer of the Seventeenth Doll (1955, Union Theatre)"
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Australian playwright and actor best known for The Summer of the Seventeenth Doll, in which he also played Barney at its 1955 premiere."
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "Plaque for Ray Lawler on the Sydney Writers Walk",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "Plaque for Ray Lawler on the Sydney Writers Walk",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/c/cf/Ray_Lawler_plaque_in_Sydney_Writers_Walk.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Snapandrattle33. CC BY-SA 4.0. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Ray_Lawler_plaque_in_Sydney_Writers_Walk.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Search AusStage (demo identifiers are illustrative)",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.ausstage.edu.au/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

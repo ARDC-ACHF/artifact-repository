@@ -1,0 +1,115 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.ausstage.edu.au/pages/event/demo-the-removalists-1971",
+  "type": "Activity",
+  "_label": "The Removalists (1971, La Mama)",
+  "classified_as": [
+    {
+      "id": "http://vocab.getty.edu/aat/300069200",
+      "type": "Type",
+      "_label": "performance"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "The Removalists (1971, La Mama)"
+    }
+  ],
+  "timespan": {
+    "type": "TimeSpan",
+    "identified_by": [
+      {
+        "type": "Name",
+        "content": "1971"
+      }
+    ],
+    "begin_of_the_begin": "1971-01-01T00:00:00Z",
+    "end_of_the_end": "1971-12-31T23:59:59Z"
+  },
+  "took_place_at": [
+    {
+      "id": "https://www.ausstage.edu.au/pages/venue/demo-la-mama-carlton",
+      "type": "Place",
+      "_label": "La Mama Theatre, Carlton",
+      "defined_by": "POINT(144.9668 -37.7985)"
+    }
+  ],
+  "carried_out_by": [
+    {
+      "id": "https://www.ausstage.edu.au/pages/contributor/demo-david-williamson",
+      "type": "Person",
+      "_label": "David Williamson"
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Early production of David Williamson's black comedy about police brutality, staged in Carlton's alternative theatre scene."
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "Venue: La Mama Theatre, Faraday Street, Carlton",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "Venue: La Mama Theatre, Faraday Street, Carlton",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/La_Mama_Theatre%2C_Carlton%2C_Victoria%2C_Australia.jpg/960px-La_Mama_Theatre%2C_Carlton%2C_Victoria%2C_Australia.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Mat Connolley (Matnkat). CC BY 2.5. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:La_Mama_Theatre,_Carlton,_Victoria,_Australia.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Search AusStage (demo identifiers are illustrative)",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.ausstage.edu.au/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

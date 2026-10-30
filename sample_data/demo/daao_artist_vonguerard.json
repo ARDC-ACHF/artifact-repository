@@ -1,0 +1,113 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.daao.org.au/bio/eugene-von-guerard/",
+  "type": "Person",
+  "_label": "Eugene von Guérard",
+  "classified_as": [
+    {
+      "type": "Type",
+      "_label": "painter"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Eugene von Guérard"
+    }
+  ],
+  "born": {
+    "type": "Birth",
+    "_label": "Birth of Eugene von Guérard",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "17 November 1811"
+        }
+      ],
+      "begin_of_the_begin": "1811-11-17T00:00:00Z",
+      "end_of_the_end": "1811-11-17T23:59:59Z"
+    },
+    "took_place_at": [
+      {
+        "type": "Place",
+        "_label": "Vienna, Austria",
+        "defined_by": "POINT(16.3738 48.2082)"
+      }
+    ]
+  },
+  "died": {
+    "type": "Death",
+    "_label": "Death of Eugene von Guérard",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "17 April 1901"
+        }
+      ],
+      "begin_of_the_begin": "1901-04-17T00:00:00Z",
+      "end_of_the_end": "1901-04-17T23:59:59Z"
+    },
+    "took_place_at": [
+      {
+        "type": "Place",
+        "_label": "London, England",
+        "defined_by": "POINT(-0.1276 51.5072)"
+      }
+    ]
+  },
+  "carried_out": [
+    {
+      "type": "Production",
+      "_label": "Production of Tower Hill",
+      "produced": [
+        {
+          "id": "https://www.daao.org.au/bio/eugene-von-guerard/works/demo-tower-hill/",
+          "type": "HumanMadeObject",
+          "_label": "Tower Hill"
+        }
+      ]
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Austrian-born landscape painter who worked in Victoria from the 1850s, known for detailed views of volcanic and alpine scenery."
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "DAAO biography",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.daao.org.au/bio/eugene-von-guerard/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

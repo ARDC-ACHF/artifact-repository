@@ -1,0 +1,122 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.ausstage.edu.au/pages/contributor/demo-richard-roxburgh",
+  "type": "Person",
+  "_label": "Richard Roxburgh",
+  "classified_as": [
+    {
+      "type": "Type",
+      "_label": "actor"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Richard Roxburgh"
+    }
+  ],
+  "born": {
+    "type": "Birth",
+    "_label": "Birth of Richard Roxburgh",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "1962"
+        }
+      ],
+      "begin_of_the_begin": "1962-01-01T00:00:00Z",
+      "end_of_the_end": "1962-12-31T23:59:59Z"
+    },
+    "took_place_at": [
+      {
+        "type": "Place",
+        "_label": "Albury, New South Wales",
+        "defined_by": "POINT(146.9135 -36.0737)"
+      }
+    ]
+  },
+  "carried_out": [
+    {
+      "id": "https://www.ausstage.edu.au/pages/event/demo-hamlet-1994",
+      "type": "Activity",
+      "_label": "Hamlet (1994, Belvoir St Theatre)"
+    },
+    {
+      "id": "https://www.ausstage.edu.au/pages/event/demo-waiting-for-godot-2013",
+      "type": "Activity",
+      "_label": "Waiting for Godot (2013, Sydney Theatre)"
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Australian actor who has played leading stage roles at Belvoir and Sydney Theatre Company."
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "Richard Roxburgh, 2013",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "Richard Roxburgh, 2013",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Richard_Roxburgh_2013.jpg/960px-Richard_Roxburgh_2013.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Eva Rinaldi. CC BY-SA 2.0. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Richard_Roxburgh_2013.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Search AusStage (demo identifiers are illustrative)",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.ausstage.edu.au/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

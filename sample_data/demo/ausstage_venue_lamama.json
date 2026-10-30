@@ -1,0 +1,94 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.ausstage.edu.au/pages/venue/demo-la-mama-carlton",
+  "type": "Place",
+  "_label": "La Mama Theatre, Carlton",
+  "classified_as": [
+    {
+      "type": "Type",
+      "_label": "theatre (building)"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "La Mama Theatre, Carlton"
+    }
+  ],
+  "defined_by": "POINT(144.9668 -37.7985)",
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Small experimental theatre in a former workshop in Faraday Street, Carlton, founded in 1967 and closely associated with new Australian writing."
+    },
+    {
+      "type": "LinguisticObject",
+      "_label": "Locality",
+      "content": "Carlton, Victoria"
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "La Mama Theatre, Faraday Street, Carlton",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "La Mama Theatre, Faraday Street, Carlton",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/La_Mama_Theatre%2C_Carlton%2C_Victoria%2C_Australia.jpg/960px-La_Mama_Theatre%2C_Carlton%2C_Victoria%2C_Australia.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Mat Connolley (Matnkat). CC BY 2.5. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:La_Mama_Theatre,_Carlton,_Victoria,_Australia.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Search AusStage (demo identifiers are illustrative)",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.ausstage.edu.au/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

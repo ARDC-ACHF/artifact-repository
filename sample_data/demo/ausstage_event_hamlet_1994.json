@@ -1,0 +1,97 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.ausstage.edu.au/pages/event/demo-hamlet-1994",
+  "type": "Activity",
+  "_label": "Hamlet (1994, Belvoir St Theatre)",
+  "classified_as": [
+    {
+      "id": "http://vocab.getty.edu/aat/300069200",
+      "type": "Type",
+      "_label": "performance"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Hamlet (1994, Belvoir St Theatre)"
+    }
+  ],
+  "timespan": {
+    "type": "TimeSpan",
+    "identified_by": [
+      {
+        "type": "Name",
+        "content": "1994"
+      }
+    ],
+    "begin_of_the_begin": "1994-01-01T00:00:00Z",
+    "end_of_the_end": "1994-12-31T23:59:59Z"
+  },
+  "took_place_at": [
+    {
+      "id": "https://www.ausstage.edu.au/pages/venue/demo-belvoir-st-theatre",
+      "type": "Place",
+      "_label": "Belvoir St Theatre, Surry Hills",
+      "defined_by": "POINT(151.2093 -33.8892)"
+    }
+  ],
+  "carried_out_by": [
+    {
+      "id": "https://www.ausstage.edu.au/pages/contributor/demo-neil-armfield",
+      "type": "Person",
+      "_label": "Neil Armfield"
+    },
+    {
+      "id": "https://www.ausstage.edu.au/pages/contributor/demo-richard-roxburgh",
+      "type": "Person",
+      "_label": "Richard Roxburgh"
+    },
+    {
+      "id": "https://www.ausstage.edu.au/pages/contributor/demo-geoffrey-rush",
+      "type": "Person",
+      "_label": "Geoffrey Rush"
+    },
+    {
+      "type": "Group",
+      "_label": "Company B Belvoir"
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Neil Armfield's production of Shakespeare's tragedy, with Richard Roxburgh as Hamlet and Geoffrey Rush as Horatio."
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Search AusStage (demo identifiers are illustrative)",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.ausstage.edu.au/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

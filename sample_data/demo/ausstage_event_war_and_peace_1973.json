@@ -1,0 +1,114 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.ausstage.edu.au/pages/event/demo-war-and-peace-1973",
+  "type": "Activity",
+  "_label": "War and Peace (1973, Sydney Opera House opening season)",
+  "classified_as": [
+    {
+      "id": "http://vocab.getty.edu/aat/300069200",
+      "type": "Type",
+      "_label": "performance"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "War and Peace (1973, Sydney Opera House opening season)"
+    }
+  ],
+  "timespan": {
+    "type": "TimeSpan",
+    "identified_by": [
+      {
+        "type": "Name",
+        "content": "28 September 1973"
+      }
+    ],
+    "begin_of_the_begin": "1973-09-28T00:00:00Z",
+    "end_of_the_end": "1973-09-28T23:59:59Z"
+  },
+  "took_place_at": [
+    {
+      "id": "https://www.ausstage.edu.au/pages/venue/demo-sydney-opera-house",
+      "type": "Place",
+      "_label": "Sydney Opera House",
+      "defined_by": "POINT(151.2153 -33.8568)"
+    }
+  ],
+  "carried_out_by": [
+    {
+      "type": "Group",
+      "_label": "The Australian Opera"
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Prokofiev's opera War and Peace, the first public performance in the Sydney Opera House's opera theatre, ahead of the building's official opening in October 1973."
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "Venue: Sydney Opera House",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "Venue: Sydney Opera House",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Sydney_Opera_House_-_Dec_2008.jpg/960px-Sydney_Opera_House_-_Dec_2008.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Diliff. CC BY-SA 3.0. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Sydney_Opera_House_-_Dec_2008.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Search AusStage (demo identifiers are illustrative)",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.ausstage.edu.au/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.daao.org.au/bio/clarice-beckett/",
+  "type": "Person",
+  "_label": "Clarice Beckett",
+  "classified_as": [
+    {
+      "type": "Type",
+      "_label": "painter"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Clarice Beckett"
+    }
+  ],
+  "born": {
+    "type": "Birth",
+    "_label": "Birth of Clarice Beckett",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "21 March 1887"
+        }
+      ],
+      "begin_of_the_begin": "1887-03-21T00:00:00Z",
+      "end_of_the_end": "1887-03-21T23:59:59Z"
+    },
+    "took_place_at": [
+      {
+        "type": "Place",
+        "_label": "Casterton, Victoria",
+        "defined_by": "POINT(141.404 -37.585)"
+      }
+    ]
+  },
+  "died": {
+    "type": "Death",
+    "_label": "Death of Clarice Beckett",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "1935"
+        }
+      ],
+      "begin_of_the_begin": "1935-01-01T00:00:00Z",
+      "end_of_the_end": "1935-12-31T23:59:59Z"
+    },
+    "took_place_at": [
+      {
+        "type": "Place",
+        "_label": "Melbourne, Victoria",
+        "defined_by": "POINT(144.9631 -37.8136)"
+      }
+    ]
+  },
+  "carried_out": [
+    {
+      "type": "Production",
+      "_label": "Production of Passing Trams",
+      "produced": [
+        {
+          "id": "https://www.daao.org.au/bio/clarice-beckett/works/demo-passing-trams/",
+          "type": "HumanMadeObject",
+          "_label": "Passing Trams"
+        }
+      ]
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Tonalist painter of misty Melbourne streets and Beaumaris foreshore scenes."
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "Portrait of Clarice Beckett",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "Portrait of Clarice Beckett",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Portrait_of_Clarice_Beckett.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Unknown author. Public domain. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Portrait_of_Clarice_Beckett.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "DAAO biography",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.daao.org.au/bio/clarice-beckett/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

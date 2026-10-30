@@ -1,0 +1,94 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.ausstage.edu.au/pages/venue/demo-sydney-theatre-walsh-bay",
+  "type": "Place",
+  "_label": "Sydney Theatre, Walsh Bay",
+  "classified_as": [
+    {
+      "type": "Type",
+      "_label": "theatre (building)"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Sydney Theatre, Walsh Bay"
+    }
+  ],
+  "defined_by": "POINT(151.2049 -33.8573)",
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Theatre at Walsh Bay opened in 2004 and used by Sydney Theatre Company; renamed the Roslyn Packer Theatre in 2015."
+    },
+    {
+      "type": "LinguisticObject",
+      "_label": "Locality",
+      "content": "Hickson Road, Walsh Bay, Sydney, New South Wales"
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "Sydney Theatre (now Roslyn Packer Theatre), Walsh Bay",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "Sydney Theatre (now Roslyn Packer Theatre), Walsh Bay",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Sydney_in_February_2026_-_30_Sydney_theatre_Dawes_point.jpg/960px-Sydney_in_February_2026_-_30_Sydney_theatre_Dawes_point.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Xyxyzyz. CC0. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Sydney_in_February_2026_-_30_Sydney_theatre_Dawes_point.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Search AusStage (demo identifiers are illustrative)",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.ausstage.edu.au/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

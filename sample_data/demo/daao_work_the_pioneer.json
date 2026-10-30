@@ -1,0 +1,184 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.daao.org.au/bio/frederick-mccubbin/works/demo-the-pioneer/",
+  "type": "HumanMadeObject",
+  "_label": "The Pioneer (Frederick McCubbin)",
+  "classified_as": [
+    {
+      "id": "http://vocab.getty.edu/aat/300033618",
+      "type": "Type",
+      "_label": "painting"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "The Pioneer"
+    }
+  ],
+  "produced_by": {
+    "type": "Production",
+    "_label": "Production of The Pioneer",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "1904"
+        }
+      ],
+      "begin_of_the_begin": "1904-01-01T00:00:00Z",
+      "end_of_the_end": "1904-12-31T23:59:59Z"
+    },
+    "carried_out_by": [
+      {
+        "id": "https://www.daao.org.au/bio/frederick-mccubbin/",
+        "type": "Person",
+        "_label": "Frederick McCubbin"
+      }
+    ]
+  },
+  "made_of": [
+    {
+      "id": "http://vocab.getty.edu/aat/300015050",
+      "type": "Material",
+      "_label": "oil paint"
+    },
+    {
+      "id": "http://vocab.getty.edu/aat/300014078",
+      "type": "Material",
+      "_label": "canvas"
+    }
+  ],
+  "dimension": [
+    {
+      "type": "Dimension",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300055644",
+          "type": "Type",
+          "_label": "height"
+        }
+      ],
+      "value": 225.0,
+      "unit": {
+        "id": "http://vocab.getty.edu/aat/300379098",
+        "type": "MeasurementUnit",
+        "_label": "centimetres"
+      }
+    },
+    {
+      "type": "Dimension",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300055647",
+          "type": "Type",
+          "_label": "width"
+        }
+      ],
+      "value": 295.7,
+      "unit": {
+        "id": "http://vocab.getty.edu/aat/300379098",
+        "type": "MeasurementUnit",
+        "_label": "centimetres"
+      }
+    }
+  ],
+  "current_location": {
+    "type": "Place",
+    "_label": "National Gallery of Victoria, Melbourne",
+    "defined_by": "POINT(144.9689 -37.8226)"
+  },
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Three-panel narrative of a settler family clearing and working the land; purchased through the Felton Bequest in 1906."
+    },
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "type": "Type",
+          "_label": "materials statement"
+        }
+      ],
+      "_label": "Medium",
+      "content": "oil on canvas (triptych)"
+    },
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "type": "Type",
+          "_label": "dimensions statement"
+        }
+      ],
+      "_label": "Dimensions",
+      "content": "225.0 × 295.7 cm"
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "The Pioneer",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "The Pioneer",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Frederick_McCubbin_-_The_pioneer_-_Google_Art_Project.jpg/960px-Frederick_McCubbin_-_The_pioneer_-_Google_Art_Project.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Frederick McCubbin. Public domain. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Frederick_McCubbin_-_The_pioneer_-_Google_Art_Project.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Frederick McCubbin on DAAO",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.daao.org.au/bio/frederick-mccubbin/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

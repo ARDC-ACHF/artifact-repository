@@ -1,0 +1,184 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.daao.org.au/bio/arthur-streeton/works/demo-fires-on/",
+  "type": "HumanMadeObject",
+  "_label": "Fire's On (Arthur Streeton)",
+  "classified_as": [
+    {
+      "id": "http://vocab.getty.edu/aat/300033618",
+      "type": "Type",
+      "_label": "painting"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Fire's On"
+    }
+  ],
+  "produced_by": {
+    "type": "Production",
+    "_label": "Production of Fire's On",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "1891"
+        }
+      ],
+      "begin_of_the_begin": "1891-01-01T00:00:00Z",
+      "end_of_the_end": "1891-12-31T23:59:59Z"
+    },
+    "carried_out_by": [
+      {
+        "id": "https://www.daao.org.au/bio/arthur-streeton/",
+        "type": "Person",
+        "_label": "Arthur Streeton"
+      }
+    ]
+  },
+  "made_of": [
+    {
+      "id": "http://vocab.getty.edu/aat/300015050",
+      "type": "Material",
+      "_label": "oil paint"
+    },
+    {
+      "id": "http://vocab.getty.edu/aat/300014078",
+      "type": "Material",
+      "_label": "canvas"
+    }
+  ],
+  "dimension": [
+    {
+      "type": "Dimension",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300055644",
+          "type": "Type",
+          "_label": "height"
+        }
+      ],
+      "value": 183.8,
+      "unit": {
+        "id": "http://vocab.getty.edu/aat/300379098",
+        "type": "MeasurementUnit",
+        "_label": "centimetres"
+      }
+    },
+    {
+      "type": "Dimension",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300055647",
+          "type": "Type",
+          "_label": "width"
+        }
+      ],
+      "value": 122.5,
+      "unit": {
+        "id": "http://vocab.getty.edu/aat/300379098",
+        "type": "MeasurementUnit",
+        "_label": "centimetres"
+      }
+    }
+  ],
+  "current_location": {
+    "type": "Place",
+    "_label": "Art Gallery of New South Wales, Sydney",
+    "defined_by": "POINT(151.2172 -33.8688)"
+  },
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Streeton's view of railway tunnel construction at Lapstone in the Blue Mountains, recording the moment a blast is set off."
+    },
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "type": "Type",
+          "_label": "materials statement"
+        }
+      ],
+      "_label": "Medium",
+      "content": "oil on canvas"
+    },
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "type": "Type",
+          "_label": "dimensions statement"
+        }
+      ],
+      "_label": "Dimensions",
+      "content": "183.8 × 122.5 cm"
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "Fire's On",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "Fire's On",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Arthur_Streeton_-_Fire%27s_on_-_Google_Art_Project.jpg/960px-Arthur_Streeton_-_Fire%27s_on_-_Google_Art_Project.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Arthur Streeton. Public domain. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Arthur_Streeton_-_Fire%27s_on_-_Google_Art_Project.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Arthur Streeton on DAAO",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.daao.org.au/bio/arthur-streeton/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.ausstage.edu.au/pages/venue/demo-union-theatre-melbourne",
+  "type": "Place",
+  "_label": "Union Theatre, University of Melbourne",
+  "classified_as": [
+    {
+      "type": "Type",
+      "_label": "theatre (building)"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Union Theatre, University of Melbourne"
+    }
+  ],
+  "defined_by": "POINT(144.9612 -37.7983)",
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Theatre inside Union House at the University of Melbourne. Home of the Union Theatre Repertory Company, which later became the Melbourne Theatre Company."
+    },
+    {
+      "type": "LinguisticObject",
+      "_label": "Locality",
+      "content": "Parkville, Victoria"
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "Union House, University of Melbourne (home of the Union Theatre)",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "Union House, University of Melbourne (home of the Union Theatre)",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/University_Of_Melbourne_Student_Union_House.JPG/960px-University_Of_Melbourne_Student_Union_House.JPG",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Polly clip. CC BY-SA 3.0. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:University_Of_Melbourne_Student_Union_House.JPG"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Search AusStage (demo identifiers are illustrative)",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.ausstage.edu.au/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

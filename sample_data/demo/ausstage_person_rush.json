@@ -1,0 +1,127 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.ausstage.edu.au/pages/contributor/demo-geoffrey-rush",
+  "type": "Person",
+  "_label": "Geoffrey Rush",
+  "classified_as": [
+    {
+      "type": "Type",
+      "_label": "actor"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Geoffrey Rush"
+    }
+  ],
+  "born": {
+    "type": "Birth",
+    "_label": "Birth of Geoffrey Rush",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "1951"
+        }
+      ],
+      "begin_of_the_begin": "1951-01-01T00:00:00Z",
+      "end_of_the_end": "1951-12-31T23:59:59Z"
+    },
+    "took_place_at": [
+      {
+        "type": "Place",
+        "_label": "Toowoomba, Queensland",
+        "defined_by": "POINT(151.9507 -27.5598)"
+      }
+    ]
+  },
+  "carried_out": [
+    {
+      "id": "https://www.ausstage.edu.au/pages/event/demo-diary-of-a-madman-1989",
+      "type": "Activity",
+      "_label": "Diary of a Madman (1989, Belvoir St Theatre)"
+    },
+    {
+      "id": "https://www.ausstage.edu.au/pages/event/demo-hamlet-1994",
+      "type": "Activity",
+      "_label": "Hamlet (1994, Belvoir St Theatre)"
+    },
+    {
+      "id": "https://www.ausstage.edu.au/pages/event/demo-diary-of-a-madman-2010",
+      "type": "Activity",
+      "_label": "Diary of a Madman (2010, Belvoir St Theatre)"
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Australian stage and screen actor with a long association with Belvoir St Theatre and director Neil Armfield."
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "Geoffrey Rush, Cannes 2011",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "Geoffrey Rush, Cannes 2011",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/8/8b/Geoffrey_Rush_Cannes_2011.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Georges Biard. CC BY-SA 3.0. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Geoffrey_Rush_Cannes_2011.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Search AusStage (demo identifiers are illustrative)",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.ausstage.edu.au/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.ausstage.edu.au/pages/contributor/demo-hugo-weaving",
+  "type": "Person",
+  "_label": "Hugo Weaving",
+  "classified_as": [
+    {
+      "type": "Type",
+      "_label": "actor"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Hugo Weaving"
+    }
+  ],
+  "born": {
+    "type": "Birth",
+    "_label": "Birth of Hugo Weaving",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "1960"
+        }
+      ],
+      "begin_of_the_begin": "1960-01-01T00:00:00Z",
+      "end_of_the_end": "1960-12-31T23:59:59Z"
+    },
+    "took_place_at": [
+      {
+        "type": "Place",
+        "_label": "Ibadan, Nigeria",
+        "defined_by": "POINT(3.947 7.3775)"
+      }
+    ]
+  },
+  "carried_out": [
+    {
+      "id": "https://www.ausstage.edu.au/pages/event/demo-waiting-for-godot-2013",
+      "type": "Activity",
+      "_label": "Waiting for Godot (2013, Sydney Theatre)"
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Australian stage and screen actor, a regular performer with Sydney Theatre Company."
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "Hugo Weaving, 2014",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "Hugo Weaving, 2014",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Hugo_Weaving_2014.jpg/960px-Hugo_Weaving_2014.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Siebbi. CC BY 3.0. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Hugo_Weaving_2014.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Search AusStage (demo identifiers are illustrative)",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.ausstage.edu.au/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

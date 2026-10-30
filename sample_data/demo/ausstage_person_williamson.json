@@ -1,0 +1,117 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.ausstage.edu.au/pages/contributor/demo-david-williamson",
+  "type": "Person",
+  "_label": "David Williamson",
+  "classified_as": [
+    {
+      "type": "Type",
+      "_label": "playwright"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "David Williamson"
+    }
+  ],
+  "born": {
+    "type": "Birth",
+    "_label": "Birth of David Williamson",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "1942"
+        }
+      ],
+      "begin_of_the_begin": "1942-01-01T00:00:00Z",
+      "end_of_the_end": "1942-12-31T23:59:59Z"
+    },
+    "took_place_at": [
+      {
+        "type": "Place",
+        "_label": "Melbourne, Victoria",
+        "defined_by": "POINT(144.9631 -37.8136)"
+      }
+    ]
+  },
+  "carried_out": [
+    {
+      "id": "https://www.ausstage.edu.au/pages/event/demo-the-removalists-1971",
+      "type": "Activity",
+      "_label": "The Removalists (1971, La Mama)"
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Australian playwright whose early plays, including The Removalists and Don's Party, were first staged in Carlton's alternative theatres."
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "David Williamson, 1972",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "David Williamson, 1972",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/2/29/David_Williamson_1972_%28cropped%29.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Australian Information Service. Public domain. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:David_Williamson_1972_(cropped).jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "Search AusStage (demo identifiers are illustrative)",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.ausstage.edu.au/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

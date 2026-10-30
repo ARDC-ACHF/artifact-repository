@@ -1,0 +1,145 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.daao.org.au/bio/frederick-mccubbin/",
+  "type": "Person",
+  "_label": "Frederick McCubbin",
+  "classified_as": [
+    {
+      "type": "Type",
+      "_label": "painter"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Frederick McCubbin"
+    }
+  ],
+  "born": {
+    "type": "Birth",
+    "_label": "Birth of Frederick McCubbin",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "25 February 1855"
+        }
+      ],
+      "begin_of_the_begin": "1855-02-25T00:00:00Z",
+      "end_of_the_end": "1855-02-25T23:59:59Z"
+    },
+    "took_place_at": [
+      {
+        "type": "Place",
+        "_label": "Melbourne, Victoria",
+        "defined_by": "POINT(144.9631 -37.8136)"
+      }
+    ]
+  },
+  "died": {
+    "type": "Death",
+    "_label": "Death of Frederick McCubbin",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "20 December 1917"
+        }
+      ],
+      "begin_of_the_begin": "1917-12-20T00:00:00Z",
+      "end_of_the_end": "1917-12-20T23:59:59Z"
+    },
+    "took_place_at": [
+      {
+        "type": "Place",
+        "_label": "Melbourne, Victoria",
+        "defined_by": "POINT(144.9631 -37.8136)"
+      }
+    ]
+  },
+  "carried_out": [
+    {
+      "type": "Production",
+      "_label": "Production of The Pioneer",
+      "produced": [
+        {
+          "id": "https://www.daao.org.au/bio/frederick-mccubbin/works/demo-the-pioneer/",
+          "type": "HumanMadeObject",
+          "_label": "The Pioneer"
+        }
+      ]
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Melbourne-born painter and teacher associated with the Heidelberg School, known for bush narratives such as The Pioneer."
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "Frederick McCubbin, self-portrait, 1886",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "Frederick McCubbin, self-portrait, 1886",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Frederick_McCubbin_-_Self-portrait%2C_1886.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Frederick McCubbin. Public domain. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Frederick_McCubbin_-_Self-portrait,_1886.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "DAAO biography",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.daao.org.au/bio/frederick-mccubbin/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
