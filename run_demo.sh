@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 # One-command stakeholder demo: set up Python + frontend, seed demo data, start the server.
 #
-#   ./run_demo.sh                 # set up what is missing/stale, seed, serve on http://localhost:8000
-#   ./run_demo.sh --reset         # wipe demo_data/ first (fresh version history)
+#   ./run_demo.sh                 # set up what is missing/stale, re-seed, serve on http://localhost:8000
 #   ./run_demo.sh --setup-only    # do everything except starting the server
 #
-# Options:  --port N  --reset  --rebuild  --recreate-venv  --setup-only  -h|--help
+# Every run re-seeds demo_data/ from scratch (seed_demo.py --reset), so the demo
+# edit history (backdated v1 -> v2 -> v3) is always intact. Records published
+# through the API in an earlier run are discarded.
+#
+# Options:  --port N  --rebuild  --recreate-venv  --setup-only  -h|--help
+#           (--reset is accepted for compatibility; resetting is now the default)
 # Env:      PYTHON=/path/to/python3.11   VENV_DIR=.venv   PORT=8000
 #           API_AUTH_USERNAME / API_AUTH_PASSWORD (otherwise generated per run)
 set -euo pipefail
@@ -20,19 +24,19 @@ DATA_DIR="$ROOT/demo_data"
 FRONTEND_DIR="$ROOT/frontend"
 CREDENTIALS_FILE="$DATA_DIR/credentials.env"
 NODE_MIN="20.19.0"
-RESET=0 REBUILD=0 RECREATE_VENV=0 SETUP_ONLY=0
+REBUILD=0 RECREATE_VENV=0 SETUP_ONLY=0
 
 say()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33mwarning:\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[1;31merror:\033[0m %s\n' "$*" >&2; exit 1; }
 
-usage() { sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --port) [[ $# -ge 2 ]] || die "--port needs a value"; PORT="$2"; shift 2 ;;
     --port=*) PORT="${1#*=}"; shift ;;
-    --reset) RESET=1; shift ;;
+    --reset) shift ;;  # always on; kept so older instructions still work
     --rebuild) REBUILD=1; shift ;;
     --recreate-venv) RECREATE_VENV=1; shift ;;
     --setup-only) SETUP_ONLY=1; shift ;;
@@ -152,12 +156,10 @@ fi
 cd "$ROOT"
 
 # --- Data --------------------------------------------------------------------
-if [[ $RESET -eq 1 && -d "$DATA_DIR" ]]; then
-  say "Removing $DATA_DIR (--reset)"
-  rm -rf "$DATA_DIR"
-fi
-say "Seeding demo records into demo_data/"
-"$venv_python" scripts/seed_demo.py --data-dir "$DATA_DIR"
+# --reset clears only demo_data/artifacts and the search index (credentials.env
+# is kept), then publishes the base records and backdated revisions in order.
+say "Re-seeding demo records into demo_data/ (with demo edit history)"
+"$venv_python" scripts/seed_demo.py --data-dir "$DATA_DIR" --reset
 
 if [[ $SETUP_ONLY -eq 1 ]]; then
   say "Setup complete (--setup-only); start later with ./run_demo.sh"
@@ -186,6 +188,8 @@ cat <<EOF
   ACHF Explorer demo  ->  http://localhost:$PORT
     API docs:      http://localhost:$PORT/docs
     Try searching: Godot, Namatjira, Belvoir, Streeton, Doll
+    Version history: Albert Namatjira (2 versions), Waiting for Godot 2013 (2),
+                     Shearing the Rams (3)
     Reads are public (DEMO_PUBLIC_READ=1); writes need Basic auth, $CREDENTIALS_HINT
       curl -u "\$API_AUTH_USERNAME:\$API_AUTH_PASSWORD" -H 'Content-Type: application/json' \\
         --data-binary @sample_data/demo/<record>.json http://localhost:$PORT/api/v1/artifacts

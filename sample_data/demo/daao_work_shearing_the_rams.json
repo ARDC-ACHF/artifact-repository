@@ -2,7 +2,7 @@
   "@context": "https://linked.art/ns/v1/linked-art.json",
   "id": "https://www.daao.org.au/bio/tom-roberts/works/demo-shearing-the-rams/",
   "type": "HumanMadeObject",
-  "_label": "Shearing the Rams (Tom Roberts)",
+  "_label": "Sheering the Rams (Tom Roberts)",
   "classified_as": [
     {
       "id": "http://vocab.getty.edu/aat/300033618",
@@ -20,7 +20,7 @@
           "_label": "Primary Name"
         }
       ],
-      "content": "Shearing the Rams"
+      "content": "Sheering the Rams"
     }
   ],
   "produced_by": {
@@ -87,7 +87,7 @@
           "_label": "width"
         }
       ],
-      "value": 183.3,
+      "value": 138.3,
       "unit": {
         "id": "http://vocab.getty.edu/aat/300379098",
         "type": "MeasurementUnit",
@@ -133,7 +133,7 @@
         }
       ],
       "_label": "Dimensions",
-      "content": "122.4 × 183.3 cm"
+      "content": "122.4 × 138.3 cm"
     }
   ],
   "representation": [

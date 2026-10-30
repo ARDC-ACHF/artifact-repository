@@ -3,11 +3,29 @@
 33 hand-curated Linked Art records used by the local demo. They are seeded with:
 
 ```bash
-.venv/bin/python scripts/seed_demo.py --data-dir demo_data
+.venv/bin/python scripts/seed_demo.py --data-dir demo_data --reset
 ```
 
 The seed script validates every record first (nothing is published if one is invalid), publishes places
-first, and is safe to re-run: unchanged records are idempotent no-ops (no new versions).
+first, and is safe to re-run: records already at their latest demo version are idempotent no-ops (no new
+versions). `--reset` deletes only `<data-dir>/artifacts` and `<data-dir>/index.sqlite3` before seeding.
+
+## Demo edit history (`revisions/`)
+
+`revisions/<base-name>.v<N>.json` are full revised records with the same `id` as the base record. They are
+published after all base records, in version order, under a demo clock that is used only while seeding (the
+live API still stamps the current time): base records on 2024-03-14 (one minute apart), v2 on 2024-08-21
+and v3 on 2025-02-10. The edits are plausible curatorial corrections, not a real editing history:
+
+| Record | v2 (2024-08-21) | v3 (2025-02-10) |
+|---|---|---|
+| Albert Namatjira | adds a biography; refines place of death to Alice Springs Hospital | — |
+| Waiting for Godot (2013) | adds Philip Quast (Pozzo) and Luke Mullins (Lucky); adds a photo credit note | — |
+| Shearing the Rams | corrects the width (138.3 → 183.3 cm, transposed digits); adds a provenance note | fixes the title typo "Sheering" → "Shearing" |
+
+The base Shearing the Rams record therefore deliberately contains the v1 errors. Quast and Mullins have no
+person records, so their links are external. Seeding without `--reset` into a directory whose current
+versions are newer than the demo dates prints a warning, because the backdated versions would sort behind them.
 
 | Partner  | File prefix        | Count | Linked Art type   |
 |----------|--------------------|-------|-------------------|

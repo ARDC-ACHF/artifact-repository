@@ -1,0 +1,156 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "https://www.daao.org.au/bio/albert-namatjira/",
+  "type": "Person",
+  "_label": "Albert Namatjira",
+  "classified_as": [
+    {
+      "type": "Type",
+      "_label": "painter"
+    }
+  ],
+  "identified_by": [
+    {
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Albert Namatjira"
+    }
+  ],
+  "born": {
+    "type": "Birth",
+    "_label": "Birth of Albert Namatjira",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "28 July 1902"
+        }
+      ],
+      "begin_of_the_begin": "1902-07-28T00:00:00Z",
+      "end_of_the_end": "1902-07-28T23:59:59Z"
+    },
+    "took_place_at": [
+      {
+        "type": "Place",
+        "_label": "Hermannsburg (Ntaria), Northern Territory",
+        "defined_by": "POINT(132.7786 -23.9431)"
+      }
+    ]
+  },
+  "died": {
+    "type": "Death",
+    "_label": "Death of Albert Namatjira",
+    "timespan": {
+      "type": "TimeSpan",
+      "identified_by": [
+        {
+          "type": "Name",
+          "content": "8 August 1959"
+        }
+      ],
+      "begin_of_the_begin": "1959-08-08T00:00:00Z",
+      "end_of_the_end": "1959-08-08T23:59:59Z"
+    },
+    "took_place_at": [
+      {
+        "type": "Place",
+        "_label": "Alice Springs Hospital, Alice Springs, Northern Territory",
+        "defined_by": "POINT(133.8786 -23.7036)"
+      }
+    ]
+  },
+  "carried_out": [
+    {
+      "type": "Production",
+      "_label": "Production of Central Australian landscape with ghost gum",
+      "produced": [
+        {
+          "id": "https://www.daao.org.au/bio/albert-namatjira/works/demo-central-australian-landscape/",
+          "type": "HumanMadeObject",
+          "_label": "Central Australian landscape with ghost gum"
+        }
+      ]
+    }
+  ],
+  "referred_to_by": [
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300435416",
+          "type": "Type",
+          "_label": "Description"
+        }
+      ],
+      "_label": "Description",
+      "content": "Western Arrernte watercolourist from Hermannsburg (Ntaria) whose Central Australian landscapes made him one of the best-known Australian artists of the mid-twentieth century."
+    },
+    {
+      "type": "LinguisticObject",
+      "classified_as": [
+        {
+          "type": "Type",
+          "_label": "biography statement"
+        }
+      ],
+      "_label": "Biography",
+      "content": "Born at the Hermannsburg (Ntaria) Lutheran mission west of Alice Springs, Namatjira worked as a stockman and camel driver before learning watercolour from the visiting painter Rex Battarbee in the mid-1930s. His first solo exhibition, in Melbourne in 1938, sold out, and his luminous views of the MacDonnell Ranges founded what became known as the Hermannsburg School. In 1957 he and his wife Rubina were granted full Australian citizenship, which was then withheld from most Aboriginal people in the Northern Territory. He died in Alice Springs Hospital in 1959."
+    }
+  ],
+  "representation": [
+    {
+      "type": "VisualItem",
+      "_label": "Albert Namatjira",
+      "digitally_shown_by": [
+        {
+          "type": "DigitalObject",
+          "_label": "Albert Namatjira",
+          "format": "image/jpeg",
+          "access_point": [
+            {
+              "id": "https://upload.wikimedia.org/wikipedia/commons/d/de/Albert_Namatjira_portrait.jpg",
+              "type": "DigitalObject"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "type": "Type",
+                  "_label": "attribution statement"
+                }
+              ],
+              "_label": "Image credit",
+              "content": "Unknown author. Public domain. Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Albert_Namatjira_portrait.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "subject_of": [
+    {
+      "type": "LinguisticObject",
+      "_label": "DAAO biography",
+      "digitally_carried_by": [
+        {
+          "type": "DigitalObject",
+          "access_point": [
+            {
+              "id": "https://www.daao.org.au/bio/albert-namatjira/",
+              "type": "DigitalObject"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

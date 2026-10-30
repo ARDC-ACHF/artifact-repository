@@ -29,6 +29,12 @@ def _load():
 
 RECORDS = _load()
 BY_ID = {rec["id"]: rec for rec in RECORDS.values()}
+REVISIONS = {path.name: json.loads(path.read_text(encoding="utf-8"))
+             for path in sorted((DEMO_DIR / "revisions").glob("*.json"))}
+NAMATJIRA = "https://www.daao.org.au/bio/albert-namatjira/"
+GODOT = "https://www.ausstage.edu.au/pages/event/demo-waiting-for-godot-2013"
+RAMS = "https://www.daao.org.au/bio/tom-roberts/works/demo-shearing-the-rams/"
+EXPECTED_VERSIONS = {NAMATJIRA: 2, GODOT: 2, RAMS: 3}
 
 
 def _ids(entries):
@@ -152,7 +158,9 @@ def test_seed_publishes_everything_idempotently(tmp_path, seeded):
 
     again = seed_demo.seed(tmp_path / "demo_data")
     assert not any(r.version_created for r in again)
-    assert all(service.list_versions(iri).total == 1 for iri in BY_ID)
+    assert again.revisions == [] and again.warnings == []
+    assert {iri: service.list_versions(iri).total for iri in BY_ID} == {
+        iri: EXPECTED_VERSIONS.get(iri, 1) for iri in BY_ID}
 
 
 def test_demo_searches_return_expected_partners(seeded):
@@ -223,6 +231,145 @@ def test_seed_cli_prints_summary(tmp_path, capsys):
     assert seed_demo.main(["--data-dir", str(tmp_path / "d")]) == 0
     out = capsys.readouterr().out
     assert f"Seeded {len(RECORDS)} records" in out and "daao" in out and "ausstage" in out
+    assert f"Applied {len(REVISIONS)} revisions to 3 records" in out
+
+
+def test_revision_files_are_valid_and_share_base_ids():
+    assert sorted(REVISIONS) == [
+        "ausstage_event_godot_2013.v2.json", "daao_artist_namatjira.v2.json",
+        "daao_work_shearing_the_rams.v2.json", "daao_work_shearing_the_rams.v3.json"]
+    validator = LinkedArtValidator()
+    for name, rec in REVISIONS.items():
+        assert validator.validate(rec).valid, name
+        assert rec["id"] == RECORDS[name.split(".v")[0] + ".json"]["id"]
+
+
+def test_revisions_are_the_planned_curatorial_edits():
+    def statements(rec):
+        return {s["_label"]: s["content"] for s in rec["referred_to_by"]}
+
+    nam1, nam2 = RECORDS["daao_artist_namatjira.json"], REVISIONS["daao_artist_namatjira.v2.json"]
+    assert "Biography" not in statements(nam1) and "Battarbee" in statements(nam2)["Biography"]
+    assert nam2["died"]["took_place_at"] != nam1["died"]["took_place_at"]
+    assert "Hospital" in nam2["died"]["took_place_at"][0]["_label"]
+
+    god1, god2 = RECORDS["ausstage_event_godot_2013.json"], REVISIONS["ausstage_event_godot_2013.v2.json"]
+    assert len(_ids(god2["carried_out_by"]) - _ids(god1["carried_out_by"])) == 2
+    assert _ids(god1["carried_out_by"]) < _ids(god2["carried_out_by"])
+    assert "Photo credit" in statements(god2) and "Photo credit" not in statements(god1)
+
+    rams1 = RECORDS["daao_work_shearing_the_rams.json"]
+    rams2, rams3 = REVISIONS["daao_work_shearing_the_rams.v2.json"], REVISIONS["daao_work_shearing_the_rams.v3.json"]
+    widths = [[d["value"] for d in r["dimension"] if d["classified_as"][0]["_label"] == "width"]
+              for r in (rams1, rams2, rams3)]
+    assert widths == [[138.3], [183.3], [183.3]]
+    assert statements(rams2)["Dimensions"] == "122.4 × 183.3 cm" and "Felton Bequest" in statements(rams2)["Provenance"]
+    assert rams1["_label"] == rams2["_label"] == "Sheering the Rams (Tom Roberts)"
+    assert rams3["_label"] == "Shearing the Rams (Tom Roberts)"
+    assert rams3["identified_by"][0]["content"] == "Shearing the Rams"
+    assert {k: v for k, v in rams3.items() if k not in ("_label", "identified_by")} == {
+        k: v for k, v in rams2.items() if k not in ("_label", "identified_by")}
+
+
+def test_seeded_history_has_backdated_versions_and_latest_is_current(seeded):
+    results, service = seeded
+    assert len(results.revisions) == len(REVISIONS) and all(r.version_created for r in results.revisions)
+    assert results.warnings == []
+    expected_dates = {
+        NAMATJIRA: ["2024-03-14", "2024-08-21"],
+        GODOT: ["2024-03-14", "2024-08-21"],
+        RAMS: ["2024-03-14", "2024-08-21", "2025-02-10"],
+    }
+    all_stamps = []
+    for iri, dates in expected_dates.items():
+        history = service.list_versions(iri)
+        oldest_first = list(reversed(history.versions))
+        assert [v.published_at[:10] for v in oldest_first] == dates
+        assert [v.is_current for v in oldest_first] == [False] * (len(dates) - 1) + [True]
+        all_stamps += [v.published_at for v in oldest_first]
+    for iri in set(BY_ID) - set(expected_dates):
+        all_stamps += [v.published_at for v in service.list_versions(iri).versions]
+    assert len(set(all_stamps)) == len(all_stamps), "demo dates are unique per record and version"
+    assert all(s.startswith(("2024-", "2025-")) for s in all_stamps)
+
+    current = {iri: json.loads(service.get_raw(iri)) for iri in expected_dates}
+    assert current[NAMATJIRA] == REVISIONS["daao_artist_namatjira.v2.json"]
+    assert current[GODOT] == REVISIONS["ausstage_event_godot_2013.v2.json"]
+    assert current[RAMS] == REVISIONS["daao_work_shearing_the_rams.v3.json"]
+    oldest = service.list_versions(RAMS).versions[-1]
+    assert json.loads(service.get_version_raw(RAMS, oldest.published_at)) == RECORDS["daao_work_shearing_the_rams.json"]
+
+
+def test_search_indexes_revised_content(seeded):
+    _, service = seeded
+    assert GODOT in {h.id for h in service.search("Quast")[1]}
+    assert NAMATJIRA in {h.id for h in service.search("Battarbee")[1]}
+    assert RAMS in {h.id for h in service.search("Felton")[1]}
+    assert {h.label for h in service.search("Rams")[1] if h.id == RAMS} == {"Shearing the Rams (Tom Roberts)"}
+    assert service.search("Sheering")[0] == 0
+
+
+def test_reset_reseed_gives_same_history(tmp_path):
+    data_dir = tmp_path / "demo_data"
+    first = seed_demo.seed(data_dir)
+    (data_dir / "keep.txt").write_text("not repository data")
+    again = seed_demo.seed(data_dir, reset=True)
+    assert all(r.version_created for r in again) and len(again.revisions) == len(REVISIONS)
+    assert [r.published_at for r in again] == [r.published_at for r in first]
+    assert [r.published_at for r in again.revisions] == [r.published_at for r in first.revisions]
+    assert (data_dir / "keep.txt").exists()
+    index = FtsIndex(data_dir / "index.sqlite3")
+    try:
+        service = RepositoryService(FilesystemStore(data_dir / "artifacts"), index)
+        assert {iri: service.list_versions(iri).total for iri in BY_ID} == {
+            iri: EXPECTED_VERSIONS.get(iri, 1) for iri in BY_ID}
+    finally:
+        index.close()
+
+
+def test_stale_data_without_reset_warns(tmp_path):
+    data_dir = tmp_path / "demo_data"
+    seed_demo.seed(data_dir)
+    index = FtsIndex(data_dir / "index.sqlite3")
+    try:
+        service = RepositoryService(FilesystemStore(data_dir / "artifacts"), index)
+        stale = dict(REVISIONS["daao_work_shearing_the_rams.v3.json"], _label="Edited live today")
+        assert service.publish(stale).published_at > "2025-12"
+    finally:
+        index.close()
+    result = seed_demo.seed(data_dir)
+    assert any("daao_work_shearing_the_rams" in w and "--reset" in w for w in result.warnings)
+    assert not seed_demo.seed(data_dir, reset=True).warnings
+
+
+def test_invalid_revision_blocks_reset(tmp_path):
+    source = tmp_path / "src"
+    (source / "revisions").mkdir(parents=True)
+    (source / "daao_artist_namatjira.json").write_text(json.dumps(RECORDS["daao_artist_namatjira.json"]))
+    wrong = dict(REVISIONS["daao_artist_namatjira.v2.json"], id="https://www.daao.org.au/bio/someone-else/")
+    (source / "revisions" / "daao_artist_namatjira.v2.json").write_text(json.dumps(wrong))
+    data_dir = tmp_path / "d"
+    seed_demo.seed(data_dir, DEMO_DIR)
+    with pytest.raises(SystemExit, match="does not match base id"):
+        seed_demo.seed(data_dir, source, reset=True)
+    assert (data_dir / "artifacts").exists() and (data_dir / "index.sqlite3").exists()
+
+
+def test_seed_clock_patch_does_not_leak(tmp_path):
+    from datetime import datetime, timezone
+
+    import app.service as service_module
+
+    original = service_module._now_published_at
+    seed_demo.seed(tmp_path / "demo_data")
+    assert service_module._now_published_at is original
+    index = FtsIndex(tmp_path / "live" / "index.sqlite3")
+    try:
+        service = RepositoryService(FilesystemStore(tmp_path / "live" / "artifacts"), index)
+        stamp = service.publish(RECORDS["daao_artist_namatjira.json"]).published_at
+    finally:
+        index.close()
+    assert stamp.startswith(str(datetime.now(timezone.utc).year))
 
 
 def test_seed_rejects_invalid_source_without_publishing(tmp_path):

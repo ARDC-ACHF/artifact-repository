@@ -66,15 +66,19 @@ Then open <http://localhost:8000>. The script is safe to re-run. It:
    constraints or interpreter change;
 2. runs `npm ci` when `frontend/package-lock.json` changes, and `npm run build`
    when the frontend sources are newer than `frontend/dist`;
-3. seeds `demo_data/` with `scripts/seed_demo.py`. Unchanged records are no-ops,
-   so re-running creates no duplicate versions;
+3. re-seeds `demo_data/` from scratch with `scripts/seed_demo.py --reset`
+   (clears `demo_data/artifacts` and the search index, keeps
+   `credentials.env`), then publishes the base records and the backdated
+   revisions in `sample_data/demo/revisions/`. Every run therefore starts with
+   the same demo edit history; records you published through the API in an
+   earlier run are discarded;
 4. starts uvicorn on `127.0.0.1` only, with `DEMO_PUBLIC_READ=1` and
    `REPOSITORY_DATA_DIR=demo_data`.
 
-Options: `--port N`, `--reset` (wipe `demo_data/` and its version history),
-`--rebuild` (force a frontend build), `--recreate-venv` (rebuild `.venv`, for
-example to replace a non-3.11 environment) and `--setup-only` (do everything
-except starting the server). Stop the server with Ctrl-C.
+Options: `--port N`, `--rebuild` (force a frontend build), `--recreate-venv`
+(rebuild `.venv`, for example to replace a non-3.11 environment) and
+`--setup-only` (do everything except starting the server). `--reset` is still
+accepted but is now the default behaviour. Stop the server with Ctrl-C.
 
 Suggested demo searches: **Godot** (an AusStage event, its venue and people),
 **Namatjira** (a DAAO artist and artwork), **Belvoir** (one venue's events),
@@ -82,6 +86,16 @@ Suggested demo searches: **Godot** (an AusStage event, its venue and people),
 **Map** toggle to see where activity took place across Australia. Open a record
 to see its image, dates, people, places on a mini map, related records, version
 history and raw JSON-LD.
+
+To show **version history**, open one of the three records with backdated
+curatorial edits (every other record has a single version). Each older version
+has a snapshot link to its JSON-LD as it was then:
+
+| Record (search for) | Versions | What changed |
+| --- | --- | --- |
+| **Albert Namatjira** (DAAO artist) | 2: 14 Mar 2024 → 21 Aug 2024 | v2 adds a fuller biography and corrects the place of death to Alice Springs Hospital |
+| **Waiting for Godot** (AusStage event, 2013) | 2: 14 Mar 2024 → 21 Aug 2024 | v2 adds Philip Quast and Luke Mullins to the cast, plus a photo credit |
+| **Shearing the Rams** (DAAO artwork) | 3: 14 Mar 2024 → 21 Aug 2024 → 10 Feb 2025 | v2 corrects the width (138.3 → 183.3 cm) and adds a provenance note; v3 fixes the title typo "Sheering" |
 
 **Public-read caveat:** `DEMO_PUBLIC_READ=1` lets *anyone who can reach the
 server* use GET/HEAD on the search, list, item, version and versions endpoints
