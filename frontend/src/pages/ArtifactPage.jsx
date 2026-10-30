@@ -112,7 +112,7 @@ export default function ArtifactPage() {
   }, [iri]);
 
   useEffect(() => {
-    document.title = view ? `${view.label} · Linked Art Repository` : 'Linked Art Repository';
+    document.title = view ? `${view.label} · ACHF Explorer` : 'ACHF Explorer';
   }, [view]);
 
   // location.key is 'default' on a fresh page load, i.e. there is no in-app page to go back to.
