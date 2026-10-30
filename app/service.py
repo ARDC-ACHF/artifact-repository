@@ -283,14 +283,21 @@ class RepositoryService:
     def list(
         self,
         *,
-        partner: str | None = None,
-        type: str | None = None,
+        partner: str | list[str] | None = None,
+        type: str | list[str] | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> tuple[int, list[ArtifactSummary]]:
+        def as_list(value):
+            # Blank values (e.g. ``?partner=``) mean "no filter", as before multi-value support.
+            if not value:
+                return None
+            values = [value] if isinstance(value, str) else list(value)
+            return [v for v in values if v and v.strip()] or None
+
         total, records = self._index.list(
-            types=[type] if type else None,
-            partners=[partner] if partner else None,
+            types=as_list(type),
+            partners=as_list(partner),
             limit=limit,
             offset=offset,
         )

@@ -169,6 +169,56 @@ def test_demo_searches_return_expected_partners(seeded):
     assert service.list(partner="daao", type="HumanMadeObject")[0] == len(_by_prefix("daao_work_"))
 
 
+def test_list_endpoint_accepts_repeated_filters_like_search(seeded):
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+
+    _, service = seeded
+    with TestClient(create_app(service=service, public_read=True, frontend_dir=None)) as client:
+        both = client.get("/api/v1/artifacts", params=[("type", "Activity"), ("type", "Place"), ("limit", 100)])
+        assert both.status_code == 200
+        assert {r["type"] for r in both.json()["results"]} == {"Activity", "Place"}
+        assert both.json()["total"] == len(_by_prefix("ausstage_event_")) + len(_by_prefix("ausstage_venue_"))
+        single = client.get("/api/v1/artifacts", params={"partner": "daao", "type": "Person"}).json()
+        assert single["total"] == len(_by_prefix("daao_artist_"))
+        partners = client.get("/api/v1/artifacts", params=[("partner", "daao"), ("partner", "ausstage")]).json()
+        assert partners["total"] == len(RECORDS)
+
+
+@pytest.mark.parametrize("params", [
+    [("partner", "")], [("type", "")], [("partner", ""), ("type", "")], [("partner", "  ")],
+    [("type", ""), ("type", " ")], "partner=&type=",
+])
+def test_list_endpoint_blank_filters_mean_unfiltered(seeded, params):
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+
+    _, service = seeded
+    with TestClient(create_app(service=service, public_read=True, frontend_dir=None)) as client:
+        url = "/api/v1/artifacts" + (f"?{params}" if isinstance(params, str) else "")
+        response = client.get(url, params=None if isinstance(params, str) else params)
+    assert response.status_code == 200
+    assert response.json()["total"] == len(RECORDS)
+
+
+def test_list_endpoint_blank_values_mixed_with_real_filters_are_ignored(seeded):
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+
+    _, service = seeded
+    with TestClient(create_app(service=service, public_read=True, frontend_dir=None)) as client:
+        mixed = client.get("/api/v1/artifacts", params=[("partner", ""), ("partner", "daao"), ("type", " ")]).json()
+        assert mixed["total"] == len(_by_prefix("daao_"))
+        types = client.get("/api/v1/artifacts", params=[("type", "Place"), ("type", ""), ("partner", "")]).json()
+        assert types["total"] == len(_by_prefix("ausstage_venue_"))
+        assert client.get("/api/v1/artifacts", params={"partner": "nobody"}).json()["total"] == 0
+    assert service.list(partner="", type=[""])[0] == len(RECORDS)
+    assert service.list(partner=["", "daao"])[0] == len(_by_prefix("daao_"))
+
+
 def test_seed_cli_prints_summary(tmp_path, capsys):
     assert seed_demo.main(["--data-dir", str(tmp_path / "d")]) == 0
     out = capsys.readouterr().out

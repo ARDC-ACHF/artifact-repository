@@ -10,6 +10,8 @@ htmlcov/
 !.env.example
 /data/
 /demo_data/
+/frontend/node_modules/
+/frontend/dist/
 .DS_Store
 .idea/
 *.pyo

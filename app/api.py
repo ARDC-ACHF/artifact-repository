@@ -43,9 +43,10 @@ def repository_router(get_service) -> APIRouter:
 
     @router.get("/artifacts", response_model=ListResponse)
     def list_artifacts(
-        partner: str | None = None, type: str | None = None,
+        partner: list[str] | None = Query(None), type: list[str] | None = Query(None),
         limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0),
     ):
+        """List artifacts; repeat ``partner``/``type`` to match any of several values."""
         total, results = get_service().list(partner=partner, type=type, limit=limit, offset=offset)
         return ListResponse(total=total, results=results, limit=limit, offset=offset)
 
