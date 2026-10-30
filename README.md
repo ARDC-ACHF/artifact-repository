@@ -40,7 +40,69 @@ For a runtime-only installation, use `requirements.txt`.
 - OpenAPI schema: <http://localhost:8000/openapi.json>.
 
 `/health` indicates application liveness only; it does not check storage or
-index readiness. There is no frontend at `/` yet.
+index readiness. When `frontend/dist` has been built, the demo frontend is
+served at `/` (see below).
+
+## Running the stakeholder demo
+
+A React search and display frontend (`frontend/`) and about 30 curated
+AusStage + DAAO Linked Art records (`sample_data/demo/`) can be launched
+locally with one command.
+
+**Prerequisites (macOS):** Python 3.11+ (`brew install python@3.11`; 3.11 is
+the tested version), Node.js 20.19+ (`brew install node`, or an
+[nvm](https://github.com/nvm-sh/nvm) install, which the script finds even when
+nvm is not on `PATH`), and internet access for the OpenStreetMap tiles and
+Wikimedia Commons images.
+
+```bash
+./run_demo.sh
+```
+
+Then open <http://localhost:8000>. The script is safe to re-run. It:
+
+1. creates `.venv` with `python3.11` (or `$PYTHON`) if it is missing or older
+   than 3.11, and reinstalls `requirements.txt` when the requirements,
+   constraints or interpreter change;
+2. runs `npm ci` when `frontend/package-lock.json` changes, and `npm run build`
+   when the frontend sources are newer than `frontend/dist`;
+3. seeds `demo_data/` with `scripts/seed_demo.py`. Unchanged records are no-ops,
+   so re-running creates no duplicate versions;
+4. starts uvicorn on `127.0.0.1` only, with `DEMO_PUBLIC_READ=1` and
+   `REPOSITORY_DATA_DIR=demo_data`.
+
+Options: `--port N`, `--reset` (wipe `demo_data/` and its version history),
+`--rebuild` (force a frontend build), `--recreate-venv` (rebuild `.venv`, for
+example to replace a non-3.11 environment) and `--setup-only` (do everything
+except starting the server). Stop the server with Ctrl-C.
+
+Suggested demo searches: **Godot** (an AusStage event, its venue and people),
+**Namatjira** (a DAAO artist and artwork), **Belvoir** (one venue's events),
+**Streeton**, and **Doll**. Use the partner/type chips to filter results, and the
+**Map** toggle to see where activity took place across Australia. Open a record
+to see its image, dates, people, places on a mini map, related records, version
+history and raw JSON-LD.
+
+**Public-read caveat:** `DEMO_PUBLIC_READ=1` lets *anyone who can reach the
+server* use GET/HEAD on the search, list, item, version and versions endpoints
+without credentials. It is off by default and is meant only for this localhost
+demo; never enable it on a shared or exposed host. Writes, deletion and
+validation still require Basic auth. Unless you export `API_AUTH_USERNAME` and
+`API_AUTH_PASSWORD`, the script generates a fresh password on each start. The
+password is never printed. It is written to `demo_data/credentials.env` (mode
+600, git-ignored), so you can use it like this:
+
+```bash
+set -a; . demo_data/credentials.env; set +a
+curl -u "$API_AUTH_USERNAME:$API_AUTH_PASSWORD" -H 'Content-Type: application/json' \
+  --data-binary @sample_data/demo/ausstage_event_godot_2013.json \
+  http://localhost:8000/api/v1/artifacts
+```
+
+The demo records are hand-curated to resemble real AusStage/DAAO entities, so
+some identifiers and details are approximate. For frontend development, run the
+API as above and use `cd frontend && npm run dev`; Vite proxies `/api` to port
+8000. `npm test` runs the parser and UI helper tests.
 
 ## API authentication
 
@@ -53,7 +115,8 @@ All `/api` and `/api/...` requests require HTTP Basic authentication, including
 validation and read-only requests. Missing/invalid credentials return 401 with
 a `WWW-Authenticate` challenge. Missing/blank configuration returns 503 and
 never enables anonymous access. `/health`, `/docs`, `/redoc` and `/openapi.json`
-remain public; health reports liveness, not authentication readiness.
+remain public; health reports liveness, not authentication readiness. The only
+exception is the opt-in `DEMO_PUBLIC_READ=1` demo mode described above.
 
 In `/docs`, select **Authorize** and enter the configured username/password.
 For curl, use `--user "$API_AUTH_USERNAME"` to prompt for the password, as below.
@@ -93,6 +156,10 @@ tests/test_health.py  Startup, health and documentation smoke tests
 tests/test_validation.py  Validator and API contract tests
 tests/test_storage.py  Shared offline backend contract and failure tests
 tests/fixtures/       Representative prototype documents from three domains
+frontend/            Vite + React demo frontend (built into frontend/dist)
+sample_data/demo/    Curated AusStage + DAAO demo records
+scripts/seed_demo.py Seed the demo records into a data directory
+run_demo.sh          One-command local stakeholder demo launcher
 requirements.txt     Runtime dependencies
 requirements-dev.txt Test dependencies, including runtime requirements
 requirements-swift.txt Optional Swift client (included in test dependencies)
@@ -170,4 +237,5 @@ for requests, response semantics, recovery and limitations, and
 
 This remains an incremental, single-process implementation, not a production
 service. OAuth/OIDC, multi-writer coordination and deployment configuration
-are deferred. No demo UI or sample-loading tooling is included.
+are deferred. The demo UI and `scripts/seed_demo.py` are for local demonstration
+only (see [Running the stakeholder demo](#running-the-stakeholder-demo)).
