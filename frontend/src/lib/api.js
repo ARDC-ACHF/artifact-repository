@@ -1,5 +1,7 @@
 // Thin fetch wrapper around the repository API (/api/v1). All calls are read-only GETs.
 
+import { createRepositoryResolver } from './links.js';
+
 const API_BASE = '/api/v1';
 
 export class ApiError extends Error {
@@ -108,3 +110,6 @@ export function getArtifactCached(iri) {
 export function clearArtifactCache() {
   artifactCache.clear();
 }
+
+/** 'internal' if the IRI is a record in this repository, 'missing' on 404 (shares the record cache). */
+export const resolveInRepository = createRepositoryResolver((iri) => getArtifactCached(iri));

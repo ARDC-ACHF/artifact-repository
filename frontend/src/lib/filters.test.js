@@ -7,13 +7,21 @@ describe('search state in the URL', () => {
   it('round-trips multi-valued filters and drops unknown values', () => {
     const params = new URLSearchParams('q=%20Godot%20&partner=daao&partner=AUSSTAGE&partner=bogus&type=event&type=event&type=widget&page=3');
     const state = readSearchState(params);
-    expect(state).toEqual({ q: 'Godot', partners: ['daao', 'ausstage'], types: ['event'], page: 3 });
+    expect(state).toEqual({ q: 'Godot', partners: ['daao', 'ausstage'], types: ['event'], page: 3, view: 'list' });
     expect(writeSearchState(state).toString()).toBe('q=Godot&partner=daao&partner=ausstage&type=event&page=3');
   });
 
   it('defaults to browse-all page 1 and omits empty values', () => {
-    expect(readSearchState(new URLSearchParams('page=-2'))).toEqual({ q: '', partners: [], types: [], page: 1 });
+    expect(readSearchState(new URLSearchParams('page=-2'))).toEqual({ q: '', partners: [], types: [], page: 1, view: 'list' });
     expect(writeSearchState({ q: '  ', partners: [], types: [], page: 1 }).toString()).toBe('');
+  });
+
+  it('keeps the map view in the URL and drops paging there', () => {
+    const state = readSearchState(new URLSearchParams('q=Godot&view=map&page=2'));
+    expect(state.view).toBe('map');
+    expect(writeSearchState(state).toString()).toBe('q=Godot&view=map');
+    expect(readSearchState(new URLSearchParams('view=grid')).view).toBe('list');
+    expect(writeSearchState({ ...state, view: 'list', page: 2 }).toString()).toBe('q=Godot&page=2');
   });
 
   it('maps type chips to Linked Art classes', () => {

@@ -51,16 +51,19 @@ export function readSearchState(params) {
   const partners = uniqueInOrder(params.getAll('partner'), (v) => PARTNER_SLUGS.has(v));
   const types = uniqueInOrder(params.getAll('type'), (v) => TYPE_SLUGS.has(v));
   const page = Number.parseInt(params.get('page') || '1', 10);
-  return { q, partners, types, page: Number.isFinite(page) && page > 0 ? page : 1 };
+  const view = params.get('view') === 'map' ? 'map' : 'list';
+  return { q, partners, types, page: Number.isFinite(page) && page > 0 ? page : 1, view };
 }
 
 /** Serialise search state; empty values are omitted so URLs stay short and shareable. */
-export function writeSearchState({ q = '', partners = [], types = [], page = 1 }) {
+export function writeSearchState({ q = '', partners = [], types = [], page = 1, view = 'list' }) {
   const params = new URLSearchParams();
   if (q.trim()) params.set('q', q.trim());
   for (const p of partners) params.append('partner', p);
   for (const t of types) params.append('type', t);
-  if (page > 1) params.set('page', String(page));
+  // The map plots every match, so paging only applies to the list view.
+  if (view === 'map') params.set('view', 'map');
+  else if (page > 1) params.set('page', String(page));
   return params;
 }
 

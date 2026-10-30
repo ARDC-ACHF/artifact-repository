@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { getArtifactCached } from '../lib/api.js';
 import { typeLabel } from '../lib/filters.js';
 import { kindForType, parseArtifact, snippet } from '../lib/linkedart.js';
+import { artifactHref } from '../lib/links.js';
 import PartnerBadge from './PartnerBadge.jsx';
 import TypePlaceholder from './TypePlaceholder.jsx';
 
@@ -23,9 +24,7 @@ export function useArtifactPreview(summary) {
   return state.id === summary.id ? state : { id: summary.id, view: null, error: null };
 }
 
-export function artifactHref(iri) {
-  return `/artifact?iri=${encodeURIComponent(iri)}`;
-}
+export { artifactHref };
 
 export default function ResultCard({ summary }) {
   const { view, error } = useArtifactPreview(summary);

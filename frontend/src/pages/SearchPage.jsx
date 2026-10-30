@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import FilterChips from '../components/FilterChips.jsx';
 import Pager from '../components/Pager.jsx';
 import ResultCard from '../components/ResultCard.jsx';
+import ResultsMap from '../components/ResultsMap.jsx';
 import SearchBar from '../components/SearchBar.jsx';
 import { isAbortError, listArtifacts, searchArtifacts } from '../lib/api.js';
 import {
@@ -11,6 +12,20 @@ import {
 } from '../lib/filters.js';
 
 const SUGGESTIONS = ['Godot', 'Namatjira', 'Belvoir', 'Streeton', 'Opera House'];
+// The map plots every match in one go (the API's maximum page size).
+const MAP_LIMIT = 200;
+
+function ViewToggle({ value, onChange }) {
+  return (
+    <div className="view-toggle" role="group" aria-label="Show results as">
+      {[['list', 'List'], ['map', 'Map']].map(([key, label]) => (
+        <button key={key} type="button" className={`view-toggle__button${value === key ? ' view-toggle__button--on' : ''}`} aria-pressed={value === key} onClick={() => onChange(key)}>
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function describeResults({ q, partners, types }, total) {
   const noun = total === 1 ? 'record' : 'records';
@@ -32,8 +47,10 @@ export default function SearchPage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    const { q, partners, types, page } = state;
-    const query = { types: apiTypesFor(types), partners, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE };
+    const { q, partners, types, page, view } = state;
+    const query = view === 'map'
+      ? { types: apiTypesFor(types), partners, limit: MAP_LIMIT, offset: 0 }
+      : { types: apiTypesFor(types), partners, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE };
     setResult((prev) => ({ ...prev, status: 'loading', error: null }));
     const call = q
       ? searchArtifacts({ ...query, q }, { signal: controller.signal })
@@ -63,7 +80,8 @@ export default function SearchPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [update]);
 
-  const pages = pageCount(result.total);
+  const isMap = state.view === 'map';
+  const pages = isMap ? 1 : pageCount(result.total);
   const stale = result.key !== requestKey;
   const loading = result.status === 'loading';
   const hasFilters = state.partners.length > 0 || state.types.length > 0;
@@ -94,9 +112,12 @@ export default function SearchPage() {
               : loading && (stale || result.items.length === 0) ? 'Searching…'
                 : describeResults(state, result.total)}
           </h2>
-          {pages > 1 && result.status === 'ready' && !stale && (
-            <span className="results__page">Page {state.page} of {pages}</span>
-          )}
+          <div className="results__tools">
+            {pages > 1 && result.status === 'ready' && !stale && (
+              <span className="results__page">Page {state.page} of {pages}</span>
+            )}
+            <ViewToggle value={state.view} onChange={(view) => update({ view })} />
+          </div>
         </div>
 
         {result.status === 'error' && !loading && (
@@ -115,26 +136,34 @@ export default function SearchPage() {
           </div>
         )}
 
-        {result.status === 'ready' && !stale && result.total > 0 && result.items.length === 0 && (
+        {isMap && result.status === 'ready' && !stale && result.items.length > 0 && (
+          <ResultsMap items={result.items} total={result.total} />
+        )}
+
+        {!isMap && result.status === 'ready' && !stale && result.total > 0 && result.items.length === 0 && (
           <div className="state-panel">
             <p>Page {state.page} is past the end of these results.</p>
             <button type="button" className="button" onClick={() => goToPage(1)}>Go to page 1</button>
           </div>
         )}
 
-        {result.items.length > 0 && (
+        {!isMap && result.items.length > 0 && (
           <ul className={`result-grid${loading ? ' result-grid--loading' : ''}`}>
             {result.items.map((summary) => <ResultCard key={summary.id} summary={summary} />)}
           </ul>
         )}
 
-        {loading && result.items.length === 0 && result.status !== 'error' && (
+        {isMap && loading && (
+          <div className="map-frame map-frame--results map-frame--loading" aria-hidden="true"><p>Loading locations…</p></div>
+        )}
+
+        {!isMap && loading && result.items.length === 0 && result.status !== 'error' && (
           <ul className="result-grid" aria-hidden="true">
             {Array.from({ length: 8 }, (_, i) => <li key={i} className="result-card result-card--skeleton" />)}
           </ul>
         )}
 
-        {!stale && result.status === 'ready' && <Pager page={state.page} pages={pages} onPage={goToPage} />}
+        {!isMap && !stale && result.status === 'ready' && <Pager page={state.page} pages={pages} onPage={goToPage} />}
       </section>
     </div>
   );
