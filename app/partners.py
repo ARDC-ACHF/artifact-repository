@@ -24,6 +24,10 @@ HOST_TO_PARTNER: dict[str, str] = {
     "www.nga.gov.au": "nga",
     "daao.org.au": "daao",
     "www.daao.org.au": "daao",
+    "creative.gov.au": "creative-australia",
+    "www.creative.gov.au": "creative-australia",
+    "acmi.net.au": "acmi",
+    "www.acmi.net.au": "acmi",
 }
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")

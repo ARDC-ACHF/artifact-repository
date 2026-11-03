@@ -23,9 +23,10 @@ export function parseWktPoint(wkt) {
 const HOST_TO_PARTNER = {
   'ausstage.org.au': 'ausstage',
   'ausstage.edu.au': 'ausstage',
-  'austlit.edu.au': 'austlit',
   'nga.gov.au': 'nga',
   'daao.org.au': 'daao',
+  'creative.gov.au': 'creative-australia',
+  'acmi.net.au': 'acmi',
 };
 
 /** Mirror of app/partners.py so records fetched without a summary still get a partner. */

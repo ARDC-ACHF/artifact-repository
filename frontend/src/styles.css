@@ -23,8 +23,9 @@
 /* Partner accents: any element with a partner class gets --accent / --accent-tint. */
 .partner-ausstage { --accent: #b4232f; --accent-tint: #fbe9ea; }
 .partner-daao { --accent: #0d7a6f; --accent-tint: #e3f4f1; }
-.partner-austlit { --accent: #4f46c8; --accent-tint: #ecebfb; }
 .partner-nga { --accent: #b45f06; --accent-tint: #fdf0e0; }
+.partner-creative-australia { --accent: #4f46c8; --accent-tint: #ecebfb; }
+.partner-acmi { --accent: #a3267a; --accent-tint: #f8e6f1; }
 .partner-other { --accent: #5b6477; --accent-tint: #eef0f4; }
 
 *, *::before, *::after { box-sizing: border-box; }

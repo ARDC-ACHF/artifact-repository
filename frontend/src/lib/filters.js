@@ -7,8 +7,9 @@ export const PAGE_SIZE = 24;
 export const PARTNERS = [
   { slug: 'ausstage', label: 'AusStage', blurb: 'Australian live performance' },
   { slug: 'daao', label: 'DAAO', blurb: 'Design & Art Australia Online' },
-  { slug: 'austlit', label: 'AustLit', blurb: 'Australian literature' },
   { slug: 'nga', label: 'NGA', blurb: 'National Gallery of Australia' },
+  { slug: 'creative-australia', label: 'Creative Australia', blurb: 'Australian Government arts investment and advisory body' },
+  { slug: 'acmi', label: 'ACMI', blurb: 'Australia\'s museum of screen culture' },
 ];
 
 // UI type chips map onto one or more Linked Art top-level classes.

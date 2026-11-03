@@ -33,6 +33,8 @@ describe('helpers', () => {
     expect(partnerForIri('https://www.daao.org.au/bio/albert-namatjira/')).toBe('daao');
     expect(partnerForIri('https://www.ausstage.edu.au/pages/event/1')).toBe('ausstage');
     expect(partnerForIri('https://ausstage.org.au/person/1')).toBe('ausstage');
+    expect(partnerForIri('https://creative.gov.au/x')).toBe('creative-australia');
+    expect(partnerForIri('https://www.acmi.net.au/works/1')).toBe('acmi');
     expect(partnerForIri('https://collections.example.museum/x')).toBe('collections');
     expect(partnerForIri('not a url')).toBe('unknown');
     expect(kindForType('Activity')).toBe('event');

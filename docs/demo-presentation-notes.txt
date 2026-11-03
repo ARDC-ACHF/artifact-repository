@@ -1,0 +1,310 @@
+ACHF EXPLORER - TEAM DEMO PRESENTATION NOTES
+=============================================
+
+Length:   about 8 minutes spoken, plus an optional 2-minute extension.
+Format:   timed run-sheet. "DO" = what to click or type. "SEE" = what the
+          team will see. "SAY" = suggested talking points (put them in
+          your own words).
+Setup:    see the PRE-FLIGHT CHECKLIST in the appendix. Do it about
+          15 minutes before the call.
+
+Every record, search term, count and date below was checked against the
+running demo (./run_demo.sh) on the demo-frontend branch.
+
+
+---------------------------------------------------------------------------
+0:00 - 1:00  OPENING: THE PROBLEM
+---------------------------------------------------------------------------
+DO:   Share the browser window, showing the ACHF Explorer home page.
+SEE:  "Explore Australia's performing and visual arts, linked."
+
+SAY:
+- Australia's creative-sector records live in separate partner systems.
+  AusStage covers live performance, DAAO covers artists and art, and the
+  partner filters are already set up for future partners such as
+  Creative Australia and ACMI.
+- Each system is excellent on its own, but a researcher who wants the
+  people, places and works across them has to search each one separately
+  and join the dots by hand.
+- ACHF is building one shared, standards-based layer across those
+  collections. What you are about to see is that layer working end to
+  end, with a search interface on top.
+- In the next eight minutes I want to show you three things: that it
+  works across partners, that the data is genuinely connected, and that
+  it is built to be trusted. Then I will be straight about what is left
+  to do.
+
+
+---------------------------------------------------------------------------
+1:00 - 2:00  WHAT IT IS
+---------------------------------------------------------------------------
+DO:   Stay on the home page. (Optional: open a second tab at
+      http://localhost:8000/docs and flick to it for a few seconds.)
+SEE:  Header with AusStage and DAAO partner badges; the API docs page.
+
+SAY:
+- Partners publish their records as Linked Art JSON-LD. That is an open,
+  international standard used by museums, not something we invented.
+- When a record arrives, the repository validates it, stores it as a
+  new version without overwriting the old one, indexes it for full-text
+  search, and works out which partner it belongs to from its web address.
+- Everything you see in this interface comes through an open REST API,
+  documented at /docs. Any partner or researcher can build on the same
+  API.
+- The interface itself is a thin layer. It does not hold any data of its
+  own; it reads the same public endpoints anyone else could use.
+
+
+---------------------------------------------------------------------------
+2:00 - 3:30  DEMO 1: ONE SEARCH ACROSS PARTNERS
+---------------------------------------------------------------------------
+DO:   Leave the search box empty and scroll a little.
+SEE:  "Browsing all 33 records": cards with images and coloured partner
+      badges (21 AusStage, 12 DAAO).
+
+DO:   Type  Godot  and press Enter.
+SEE:  3 records: the event "Waiting for Godot (2013, Sydney Theatre)" and
+      the people Hugo Weaving and Richard Roxburgh.
+
+DO:   Type  Namatjira  and press Enter.
+SEE:  2 DAAO records: the artist Albert Namatjira and the work "Central
+      Australian landscape with ghost gum".
+
+DO:   Clear the search. Click the DAAO chip under Partner, then the
+      Person chip under Type. Then clear both chips.
+DO:   Click "Map" (top right of the results).
+SEE:  Markers across Australia, from Sydney and Melbourne theatres to
+      Hermannsburg in Central Australia. Click a marker to show its popup.
+
+SAY:
+- One search box, two very different collections: a theatre production
+  and its cast next to an Aboriginal watercolourist and his work.
+- Search reaches descriptions and names inside each record, not just
+  titles.
+- The map is built from coordinates inside the records themselves, such
+  as venues, birthplaces and gallery locations. Nobody drew it by hand.
+- The filters are the same idea: partner and type come from the data,
+  so a new partner shows up here as soon as it starts publishing.
+- Every search and filter is in the page address, so I can paste a link
+  into chat and you will see exactly the same results.
+
+
+---------------------------------------------------------------------------
+3:30 - 5:00  DEMO 2: A CONNECTED PERFORMANCE RECORD
+---------------------------------------------------------------------------
+DO:   Switch back to "List". Search  Doll  and open "The Summer of the
+      Seventeenth Doll (1955, Union Theatre)".
+SEE:  Date 28 November 1955; venue Union Theatre, University of
+      Melbourne, on a mini map; Ray Lawler and the Union Theatre
+      Repertory Company; a short description.
+
+DO:   Click "Ray Lawler", then go back and click the venue.
+SEE:  Each opens its own record page: the person and the venue.
+
+SAY:
+- This is the premiere of a landmark Australian play. The record knows
+  when it happened, where, and who was involved, and each of those is a
+  link, not just text.
+- That is the "linked" in linked data: people, places and events are
+  records in their own right, and we can move between them.
+- Today those links run within this sample. Once a second partner
+  publishes, the same mechanism connects a performance in AusStage to
+  an artist in DAAO, which is where the real research value is.
+- (If time allows) Search  Madman : Diary of a Madman was staged at
+  Belvoir in 1989 and revived there in 2010, both times with Geoffrey
+  Rush and directed by Neil Armfield. Same work, same people, two decades
+  apart, and the data shows it.
+
+
+---------------------------------------------------------------------------
+5:00 - 6:00  DEMO 3: A VISUAL-ART RECORD
+---------------------------------------------------------------------------
+DO:   Search  Roberts  and open "Shearing the Rams (Tom Roberts)".
+SEE:  Large image of the painting with its credit (public domain, via
+      Wikimedia Commons); produced 1890 by Tom Roberts; oil paint, canvas
+      and composition board; 122.4 x 183.3 cm; a map pin at the National
+      Gallery of Victoria; a provenance note; a link to Tom Roberts on
+      DAAO.
+
+SAY:
+- Same interface, different kind of record. The page adapts to an
+  artwork, with materials, dimensions and where it is held now.
+- Nothing on this page was designed for this painting. The interface
+  reads standard Linked Art fields, so any partner's artwork that uses
+  the same fields gets the same treatment automatically.
+- Image credits travel inside the record, so rights information is not
+  lost when the data is shared.
+- The external link sends people back to the partner's own site. This
+  layer drives traffic to partners rather than replacing them.
+- The map pin comes from the record too: the current location carries
+  its own coordinates, so the gallery appears without anyone setting it
+  up.
+
+
+---------------------------------------------------------------------------
+6:00 - 7:00  DEMO 4: TRUST AND PROVENANCE OF THE DATA
+---------------------------------------------------------------------------
+DO:   On Shearing the Rams, scroll to the version history.
+SEE:  "3 published versions": v1 14 March 2024, v2 21 August 2024,
+      v3 10 February 2025 (marked Current).
+
+DO:   Click "JSON-LD" next to v1 to open the original snapshot in a new
+      tab.
+SEE:  The original record, with the width given as 138.3 cm and the title
+      misspelt "Sheering". v2 corrected the width to 183.3 cm and added
+      the provenance (bought by the NGV through the Felton Bequest,
+      1932); v3 fixed the spelling.
+
+DO:   Back on the page, expand "Linked Art JSON-LD" at the bottom.
+
+SAY:
+- Corrections happen all the time in collections. Here every published
+  change is kept as an immutable snapshot, so you can always see what
+  the record said and when.
+- That matters for research citation and for partner trust: nothing is
+  silently overwritten.
+- And this is the data exactly as stored: open, standard JSON-LD that
+  anyone can reuse. There is no proprietary format to lock anyone in.
+- Every version also has its own address in the API, so a researcher
+  can cite the record exactly as it stood on a given date.
+
+
+---------------------------------------------------------------------------
+7:00 - 8:00  HOW READY IS IT? (BE HONEST HERE)
+---------------------------------------------------------------------------
+DO:   Stay on the page or stop sharing.
+
+SAY:
+- Built and tested today: Linked Art validation, versioned storage with
+  history and snapshot retrieval, filtered full-text search, partner
+  attribution, authenticated publishing and deletion, and the open API.
+  The backend has 309 automated tests and the frontend has 36, and all
+  of them pass.
+- Demo-only, and I want to be clear about this: the 33 records are
+  hand-curated samples modelled on AusStage and DAAO, not a live
+  harvest, and their identifiers are illustrative. It runs on my laptop.
+  Public read access is a demo switch, and there is no publishing from
+  the user interface yet.
+- So the core engine is close. The remaining work is mostly onboarding
+  and operations: hosting, deciding how partner credentials and access
+  work, and mapping one partner's real export into Linked Art.
+- Put simply: the hard, reusable part, which is validating, versioning
+  and searching standard data, exists and is tested. What is left is
+  the work of connecting it to a real partner, and that is best done
+  with a partner.
+
+
+---------------------------------------------------------------------------
+8:00 - 9:00  SECTOR IMPACT AND THE ASK
+---------------------------------------------------------------------------
+SAY:
+- Discovery: one place to find performances, people, places and works
+  across collections that have never been searchable together.
+- Research: open, versioned, standard data that researchers can cite and
+  reuse, and that links back to each partner.
+- Smaller organisations: a partner can publish standard data without
+  building and running its own infrastructure.
+- Durability: each record keeps a stable web identifier and its full
+  history.
+- Partners stay visible: records are attributed to them, link back to
+  their sites, and can be corrected or withdrawn through the API.
+- The ask: let's choose one pilot partner and a target date this
+  meeting, and map a real sample of their records into the repository.
+  That is the fastest way to turn this demo into a service.
+
+
+---------------------------------------------------------------------------
+9:00 - 10:00  OPTIONAL EXTENSION (ONLY IF TIME AND INTEREST)
+---------------------------------------------------------------------------
+- Open "Waiting for Godot (2013, Sydney Theatre)" and show its version
+  history: 2 versions (14 March 2024 and 21 August 2024). v2 added Philip
+  Quast and Luke Mullins to the linked cast, plus a credit explaining
+  that the image is the venue, not a production photo.
+- Open "Albert Namatjira": 2 versions. v2 added a fuller biography and
+  corrected his place of death to Alice Springs Hospital. Show the map
+  pins for Hermannsburg (birth) and Alice Springs (death).
+- Search  Quast  to show that text added in a later version is
+  searchable straight away.
+
+
+===========================================================================
+APPENDIX (NOT SPOKEN)
+===========================================================================
+
+PRE-FLIGHT CHECKLIST (about 15 minutes before)
+- In the repository, on branch demo-frontend, run:  ./run_demo.sh
+  (use ./run_demo.sh --port 8001 if port 8000 is busy).
+- Wait for the "ACHF Explorer demo -> http://localhost:8000" banner.
+- Check that the internet works: map tiles and images load from
+  OpenStreetMap and Wikimedia.
+- Open these tabs in advance: the home page, /docs, and Shearing the
+  Rams.
+- Set the browser zoom to about 125%. Close other tabs and notifications.
+- In Zoom, share a single browser window, not the whole screen.
+- Do a quick dry run: search Godot, open one record, toggle Map.
+- Note: the launcher re-seeds the demo data on every run, so the 33
+  records and the 2/2/3 version histories are always fresh.
+
+FALLBACK PLAN
+- Images missing: placeholders appear automatically. Keep going and say
+  the images come from Wikimedia at view time.
+- Map tiles not loading: skip the Map view and use the venue names and
+  dates on each record instead. Mention that the coordinates are in the
+  JSON-LD.
+- Server will not start or the port is busy: stop the old process
+  (Ctrl-C in its terminal) or run ./run_demo.sh --port 8001.
+- Total failure: give the talk from these notes, show
+  sample_data/demo/daao_work_shearing_the_rams.json in an editor as an
+  example of the data, and offer a follow-up demo.
+
+LIKELY QUESTIONS AND SUGGESTED ANSWERS
+Q: Is this real AusStage and DAAO data?
+A: Not yet. These are hand-curated records modelled on real entities.
+   The identifiers are illustrative, and the AusStage links go to the
+   AusStage home page. The pipeline is the real part; a live partner
+   feed is the next step.
+Q: What does a partner need to do to join?
+A: Send records as Linked Art JSON-LD through the API with credentials.
+   The repository validates each record and gives clear errors when one
+   fails.
+Q: What happens when a partner corrects a record?
+A: They publish it again. The old version is kept as a snapshot, and the
+   new one becomes current and searchable. Shearing the Rams shows this.
+Q: Can records be removed?
+A: Yes. Authenticated delete endpoints remove a single snapshot or a
+   whole record. Deleting the current snapshot promotes the newest
+   remaining one.
+Q: Who can see the data?
+A: In this demo, reads are public through a switch that is off by
+   default. In normal operation every API call needs credentials, and
+   writes always do.
+Q: Where would it be hosted?
+A: Not decided. Today storage is the local filesystem with a SQLite
+   search index; Swift object storage can be plugged in through the
+   application factory. Hosting is part of the onboarding work.
+Q: Why Linked Art rather than our own format?
+A: It is an open community standard already used by museums, so the
+   data is reusable by others and we avoid lock-in.
+Q: How long until a pilot?
+A: Don't promise a date here. Propose agreeing a pilot partner and a
+   target date as the outcome of this meeting.
+
+RECORD CHEAT-SHEET (type these exactly)
+  Search term     What to open
+  -----------     ------------------------------------------------------
+  Godot           Waiting for Godot (2013, Sydney Theatre)  [2 versions]
+  Namatjira       Albert Namatjira                          [2 versions]
+  Doll            The Summer of the Seventeenth Doll (1955, Union
+                  Theatre)
+  Madman          Diary of a Madman (1989 / 2010, Belvoir St Theatre)
+  Roberts         Shearing the Rams (Tom Roberts)           [3 versions]
+  Belvoir         7 results: the venue, Hamlet 1994, both Diary of a
+                  Madman productions and three people
+  Streeton        Arthur Streeton and Fire's On
+  Quast           Waiting for Godot (found via text added in v2)
+
+KEY NUMBERS
+  33 records: 21 AusStage (8 events, 7 people, 6 venues) and
+  12 DAAO (6 artists, 6 artworks).
+  3 records with edit history: 2, 2 and 3 versions, dated 2024-2025.
+  309 backend tests and 36 frontend tests, all passing.

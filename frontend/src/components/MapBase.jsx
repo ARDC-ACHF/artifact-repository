@@ -6,8 +6,9 @@ import { MAX_FIT_ZOOM } from '../lib/geo.js';
 export const PARTNER_COLOURS = {
   ausstage: '#b4232f',
   daao: '#0d7a6f',
-  austlit: '#4f46c8',
   nga: '#b45f06',
+  'creative-australia': '#4f46c8',
+  acmi: '#a3267a',
 };
 const MIXED_COLOUR = '#1f2a44';
 
