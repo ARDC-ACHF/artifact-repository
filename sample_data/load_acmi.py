@@ -7,12 +7,18 @@ Usage::
     python sample_data/load_acmi.py https://api.acmi.net.au/works/75517/
     python sample_data/load_acmi.py --work-id 125569 --base-url http://host:8000
     python sample_data/load_acmi.py --direct
+
+HTTP mode reads API_AUTH_USERNAME and API_AUTH_PASSWORD from the environment.
+Credentials are sent only to the repository, not to the ACMI Public API.
+For --direct, stop the server first and use --data-dir to select its data.
 """
 
 from __future__ import annotations
 
 import argparse
+import base64
 import json
+import os
 import re
 import sys
 import urllib.error
@@ -55,6 +61,18 @@ def fetch_work(work: str | int) -> dict:
     return artifact
 
 
+def _auth_header() -> str:
+    username = os.environ.get("API_AUTH_USERNAME", "")
+    password = os.environ.get("API_AUTH_PASSWORD", "")
+    if not username.strip() or ":" in username or not password.strip():
+        raise ValueError(
+            "Set API_AUTH_USERNAME (without ':') and API_AUTH_PASSWORD "
+            "to the server's credentials."
+        )
+    token = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("ascii")
+    return f"Basic {token}"
+
+
 def publish_http(artifact: dict, base_url: str) -> dict:
     request = urllib.request.Request(
         f"{base_url.rstrip('/')}/api/v1/artifacts",
@@ -62,27 +80,26 @@ def publish_http(artifact: dict, base_url: str) -> dict:
         headers={"Content-Type": "application/ld+json"},
         method="POST",
     )
+    request.add_unredirected_header("Authorization", _auth_header())
     with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
         return json.load(response)
 
 
-def publish_direct(artifact: dict) -> dict:
+def publish_direct(artifact: dict, data_dir: Path = Path("data")) -> dict:
     # Support running this file by path without installing the app package.
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-    from app.config import get_settings
     from app.index import FtsIndex
     from app.service import RepositoryService, ValidationFailed
-    from app.storage import build_storage
+    from app.storage.fs_store import FilesystemStore
 
-    settings = get_settings()
-    settings.ensure_local_dirs()
-    service = RepositoryService(
-        settings, build_storage(settings), FtsIndex(settings.index_path)
-    )
+    index = FtsIndex(data_dir / "index.sqlite3")
     try:
+        service = RepositoryService(FilesystemStore(data_dir / "artifacts"), index)
         return service.publish(artifact).model_dump()
     except ValidationFailed as exc:
         raise ValueError(exc.result.model_dump_json()) from exc
+    finally:
+        index.close()
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -90,7 +107,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("work", nargs="?", help="ACMI work ID or full URI (default: 125569).")
     parser.add_argument("--work-id", "--uri", dest="work_option", help="ACMI work ID or full URI, instead of the positional argument.")
     parser.add_argument("--base-url", default="http://localhost:8000")
-    parser.add_argument("--direct", action="store_true", help="Write directly to configured storage/index.")
+    parser.add_argument("--direct", action="store_true", help="Write directly to filesystem storage/index; stop the server first.")
+    parser.add_argument("--data-dir", type=Path, default=Path("data"), help="Data directory for --direct (default: ./data).")
     args = parser.parse_args(argv)
     if args.work is not None and args.work_option is not None:
         parser.error("Supply either a positional work or --work-id/--uri, not both.")
@@ -100,13 +118,16 @@ def main(argv: list[str] | None = None) -> int:
     except ValueError as exc:
         parser.error(str(exc))
 
-    stage = "fetch ACMI work"
+    stage = "configure repository authentication"
     try:
+        if not args.direct:
+            _auth_header()
+        stage = "fetch ACMI work"
         print(f"Fetching {url}…")
         artifact = fetch_work(url)
         stage = "publish ACMI work"
         result = (
-            publish_direct(artifact)
+            publish_direct(artifact, args.data_dir)
             if args.direct
             else publish_http(artifact, args.base_url)
         )

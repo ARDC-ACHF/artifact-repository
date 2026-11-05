@@ -170,4 +170,4 @@ for requests, response semantics, recovery and limitations, and
 
 This remains an incremental, single-process implementation, not a production
 service. OAuth/OIDC, multi-writer coordination and deployment configuration
-are deferred. No demo UI or sample-loading tooling is included.
+are deferred. No demo UI is included.

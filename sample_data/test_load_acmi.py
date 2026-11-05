@@ -1,12 +1,19 @@
 """ACMI import transport, failure handling, and repository integration."""
 
 import io
+import base64
 import json
 import urllib.error
 
 import pytest
 
 from sample_data import load_acmi
+
+
+@pytest.fixture(autouse=True)
+def credentials(monkeypatch):
+    monkeypatch.setenv("API_AUTH_USERNAME", "tester")
+    monkeypatch.setenv("API_AUTH_PASSWORD", "test-secret")
 
 
 @pytest.fixture
@@ -46,6 +53,8 @@ def test_http_import_preserves_payload(monkeypatch, artifact, capsys, args, work
     assert requests[1].full_url == "http://repository:8000/api/v1/artifacts"
     assert json.loads(requests[1].data) == artifact
     assert requests[1].get_header("Content-type") == "application/ld+json"
+    assert requests[0].get_header("Authorization") is None
+    assert requests[1].get_header("Authorization") == "Basic " + base64.b64encode(b"tester:test-secret").decode()
     assert "acmi" in capsys.readouterr().out
 
 
@@ -97,14 +106,60 @@ def test_repository_rejection_is_reported(monkeypatch, artifact, capsys):
     assert "HTTP 422: validation failed" in capsys.readouterr().err
 
 
-def test_direct_import_is_searchable_and_idempotent(settings, artifact):
+def test_direct_import_is_searchable_and_idempotent(tmp_path, artifact):
     from app.index import FtsIndex
 
-    first = load_acmi.publish_direct(artifact)
-    second = load_acmi.publish_direct(artifact)
+    first = load_acmi.publish_direct(artifact, tmp_path)
+    second = load_acmi.publish_direct(artifact, tmp_path)
     assert first["partner"] == "acmi"
     assert first["version_created"] is True
     assert second["version_created"] is False
-    total, results = FtsIndex(settings.index_path).search("Frog", partners=["acmi"])
-    assert total == 1
-    assert results[0].iri == artifact["id"]
+    index = FtsIndex(tmp_path / "index.sqlite3")
+    try:
+        total, results = index.search("Frog", partners=["acmi"])
+        assert total == 1
+        assert results[0].iri == artifact["id"]
+    finally:
+        index.close()
+
+
+@pytest.mark.parametrize("variable", ["API_AUTH_USERNAME", "API_AUTH_PASSWORD"])
+def test_missing_credentials_fail_before_fetch(variable, monkeypatch, capsys):
+    monkeypatch.delenv(variable)
+    monkeypatch.setattr(load_acmi, "fetch_work", lambda work: pytest.fail("must not fetch"))
+    assert load_acmi.main([]) == 1
+    assert "Set API_AUTH_USERNAME" in capsys.readouterr().err
+
+
+def test_direct_mode_needs_no_http_credentials(tmp_path, artifact, monkeypatch):
+    monkeypatch.delenv("API_AUTH_USERNAME")
+    monkeypatch.delenv("API_AUTH_PASSWORD")
+    monkeypatch.setattr(load_acmi, "fetch_work", lambda work: artifact)
+    assert load_acmi.main(["--direct", "--data-dir", str(tmp_path)]) == 0
+
+
+@pytest.mark.parametrize("password, expected", [("test-secret", 0), ("wrong-password", 1)])
+def test_loader_against_authenticated_api(tmp_path, artifact, monkeypatch, capsys, password, expected):
+    from fastapi.testclient import TestClient
+    from app.auth import BasicAuthProvider
+    from app.main import create_app
+
+    monkeypatch.setenv("API_AUTH_PASSWORD", password)
+    monkeypatch.setattr(load_acmi, "fetch_work", lambda work: artifact)
+    app = create_app(data_dir=tmp_path, auth_providers=(BasicAuthProvider("tester", "test-secret"),))
+    with TestClient(app) as client:
+        def urlopen(request, timeout):
+            response = client.post(request.full_url, content=request.data, headers=dict(request.header_items()))
+            if response.status_code >= 400:
+                raise urllib.error.HTTPError(request.full_url, response.status_code, "Error", {}, io.BytesIO(response.content))
+            return io.BytesIO(response.content)
+
+        monkeypatch.setattr(load_acmi.urllib.request, "urlopen", urlopen)
+        assert load_acmi.main([]) == expected
+        if expected == 0:
+            assert load_acmi.main([]) == 0
+            assert "unchanged (no new version)" in capsys.readouterr().out
+            response = client.get("/api/v1/artifacts", auth=("tester", "test-secret"))
+            assert response.json()["total"] == 1
+        else:
+            assert "HTTP 401" in capsys.readouterr().err
