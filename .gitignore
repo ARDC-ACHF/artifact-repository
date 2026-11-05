@@ -54,3 +54,14 @@ Desktop.ini
 *.swp
 *.swo
 *~
+*.pyo
+*$py.class
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# Python bytecode
+*.pyc
+__pycache__/
