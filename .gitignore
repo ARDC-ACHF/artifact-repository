@@ -11,3 +11,14 @@ htmlcov/
 /data/
 .DS_Store
 .idea/
+*.pyo
+*$py.class
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# Python bytecode
+*.pyc
+__pycache__/
