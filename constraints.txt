@@ -28,3 +28,4 @@ python-swiftclient==4.11.0
 requests==2.34.2
 charset-normalizer==3.5.1
 urllib3==2.8.0
+tldextract==5.4.0
