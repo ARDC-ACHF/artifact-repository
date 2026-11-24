@@ -9,6 +9,7 @@ __pycache__/
 venv/
 env/
 ENV/
+.python-version
 
 # Build output and package metadata
 build/
