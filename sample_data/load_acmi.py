@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Fetch an ACMI work as Linked Art JSON-LD and publish it to the repository.
+"""Fetch an ACMI work or creator as Linked Art JSON-LD and publish it to the repository.
 
 Usage::
 
     python sample_data/load_acmi.py
     python sample_data/load_acmi.py https://api.acmi.net.au/works/75517/
     python sample_data/load_acmi.py --work-id 125569 --base-url http://host:8000
+    python sample_data/load_acmi.py --creator-id 123
     python sample_data/load_acmi.py --direct
 
 HTTP mode reads API_AUTH_USERNAME and API_AUTH_PASSWORD from the environment.
@@ -29,36 +30,55 @@ from pathlib import Path
 TIMEOUT = 30
 
 
-def work_url(work: str | int) -> str:
-    """Normalise a work ID or ACMI work URI to the JSON-LD API endpoint."""
-    value = str(work).strip()
+def _record_url(record: str | int, kind: str) -> str:
+    """Normalise an ID or ACMI URI to the selected JSON-LD endpoint."""
+    value = str(record).strip()
     if re.fullmatch(r"[0-9]+", value):
-        work_id = int(value)
+        record_id = int(value)
     else:
         parsed = urllib.parse.urlsplit(value)
-        match = re.fullmatch(r"/works/([0-9]+)/?", parsed.path)
+        match = re.fullmatch(rf"/{kind}s/([0-9]+)/?", parsed.path)
         if (
             parsed.scheme not in {"http", "https"}
             or parsed.netloc.lower() != "api.acmi.net.au"
             or match is None
         ):
-            raise ValueError("Expected a positive work ID or an ACMI URI such as https://api.acmi.net.au/works/75517/.")
-        work_id = int(match[1])
-    if work_id <= 0:
-        raise ValueError("Work ID must be a positive integer.")
-    # Build the canonical endpoint so existing format parameters and fragments
-    # cannot override JSON-LD or become part of the record's stored identity.
-    return f"https://api.acmi.net.au/works/{work_id}/?format=jsonld"
+            raise ValueError(
+                f"Expected a positive {kind} ID or an ACMI URI such as "
+                f"https://api.acmi.net.au/{kind}s/123/."
+            )
+        record_id = int(match[1])
+    if record_id <= 0:
+        raise ValueError(f"{kind.capitalize()} ID must be a positive integer.")
+    # Discard query strings and fragments so they cannot override JSON-LD.
+    return f"https://api.acmi.net.au/{kind}s/{record_id}/?format=jsonld"
 
 
-def fetch_work(work: str | int) -> dict:
-    url = work_url(work)
+def work_url(work: str | int) -> str:
+    """Normalise a work ID or ACMI work URI to the JSON-LD API endpoint."""
+    return _record_url(work, "work")
+
+
+def creator_url(creator: str | int) -> str:
+    """Normalise a creator ID or ACMI creator URI to the JSON-LD endpoint."""
+    return _record_url(creator, "creator")
+
+
+def _fetch_record(url: str) -> dict:
     request = urllib.request.Request(url, headers={"Accept": "application/ld+json"})
     with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
         artifact = json.load(response)
     if not isinstance(artifact, dict):
         raise ValueError("ACMI returned a JSON value that is not an object.")
     return artifact
+
+
+def fetch_work(work: str | int) -> dict:
+    return _fetch_record(work_url(work))
+
+
+def fetch_creator(creator: str | int) -> dict:
+    return _fetch_record(creator_url(creator))
 
 
 def _auth_header() -> str:
@@ -104,17 +124,26 @@ def publish_direct(artifact: dict, data_dir: Path = Path("data")) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("work", nargs="?", help="ACMI work ID or full URI (default: 125569).")
-    parser.add_argument("--work-id", "--uri", dest="work_option", help="ACMI work ID or full URI, instead of the positional argument.")
+    parser.add_argument("record", nargs="?", help="ACMI work ID or work/creator URI (default: work 125569).")
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument("--work-id", help="ACMI work ID or full work URI.")
+    selection.add_argument("--creator-id", help="ACMI creator ID or full creator URI.")
+    selection.add_argument("--uri", help="ACMI work/creator URI or work ID.")
     parser.add_argument("--base-url", default="http://localhost:8000")
     parser.add_argument("--direct", action="store_true", help="Write directly to filesystem storage/index; stop the server first.")
     parser.add_argument("--data-dir", type=Path, default=Path("data"), help="Data directory for --direct (default: ./data).")
     args = parser.parse_args(argv)
-    if args.work is not None and args.work_option is not None:
-        parser.error("Supply either a positional work or --work-id/--uri, not both.")
-    work = args.work if args.work is not None else args.work_option
+    options = (args.work_id, args.creator_id, args.uri)
+    if args.record is not None and any(value is not None for value in options):
+        parser.error("Supply either a positional record or --work-id/--creator-id/--uri, not both.")
+    record = next((value for value in (args.record, *options) if value is not None), "125569")
+    kind = "work"
     try:
-        url = work_url(work if work is not None else 125569)
+        if args.creator_id is not None or (
+            args.work_id is None and urllib.parse.urlsplit(record).path.startswith("/creators/")
+        ):
+            kind = "creator"
+        url = creator_url(record) if kind == "creator" else work_url(record)
     except ValueError as exc:
         parser.error(str(exc))
 
@@ -122,10 +151,10 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if not args.direct:
             _auth_header()
-        stage = "fetch ACMI work"
+        stage = f"fetch ACMI {kind}"
         print(f"Fetching {url}…")
-        artifact = fetch_work(url)
-        stage = "publish ACMI work"
+        artifact = fetch_creator(url) if kind == "creator" else fetch_work(url)
+        stage = f"publish ACMI {kind}"
         result = (
             publish_direct(artifact, args.data_dir)
             if args.direct
