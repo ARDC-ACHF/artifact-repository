@@ -2,3 +2,4 @@
 fastapi==0.141.1
 uvicorn==0.53.0
 PyLD==2.0.4
+tldextract>=5.1,<6.0
