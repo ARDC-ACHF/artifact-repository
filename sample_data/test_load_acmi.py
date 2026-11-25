@@ -71,7 +71,12 @@ def test_work_url_normalises_format(work):
     ["0"], ["--work-id", "-1"], ["not-a-work"],
     ["https://example.com/works/75517/"],
     ["https://api.acmi.net.au/works/"],
-    ["https://api.acmi.net.au/creators/75517/"],
+    ["--work-id", "https://api.acmi.net.au/creators/75517/"],
+    ["--creator-id", "https://api.acmi.net.au/works/75517/"],
+    ["--creator-id", "0"], ["--creator-id", "-1"],
+    ["--creator-id", "https://example.com/creators/123/"],
+    ["--creator-id", "123", "--work-id", "456"],
+    ["123", "--creator-id", "456"],
     ["75517", "--work-id", "125569"],
 ])
 def test_invalid_arguments_do_not_fetch(args, monkeypatch):
@@ -163,3 +168,76 @@ def test_loader_against_authenticated_api(tmp_path, artifact, monkeypatch, capsy
             assert response.json()["total"] == 1
         else:
             assert "HTTP 401" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("creator_type", ["Person", "Group"])
+@pytest.mark.parametrize("args", [
+    ["--creator-id", "123"],
+    ["--creator-id", "https://api.acmi.net.au/creators/123/"],
+    ["https://api.acmi.net.au/creators/123"],
+    ["--uri", "https://api.acmi.net.au/creators/123/?format=json#details"],
+])
+def test_creator_import_preserves_payload(monkeypatch, capsys, args, creator_type):
+    artifact = {
+        "@context": "https://linked.art/ns/v1/linked-art.json",
+        "id": "https://api.acmi.net.au/creators/123/",
+        "type": creator_type,
+        "_label": "Example Creator",
+    }
+    requests = []
+
+    def urlopen(request, timeout):
+        requests.append(request)
+        result = artifact if request.get_method() == "GET" else {
+            "id": artifact["id"], "type": artifact["type"],
+            "partner": "acmi", "version_created": True,
+        }
+        return io.BytesIO(json.dumps(result).encode())
+
+    monkeypatch.setattr(load_acmi.urllib.request, "urlopen", urlopen)
+    assert load_acmi.main(args) == 0
+    assert requests[0].full_url == "https://api.acmi.net.au/creators/123/?format=jsonld"
+    assert requests[0].get_header("Authorization") is None
+    assert requests[1].get_header("Authorization").startswith("Basic ")
+    assert json.loads(requests[1].data) == artifact
+    assert creator_type in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("creator_type", ["Person", "Group"])
+def test_creator_direct_import_is_searchable_and_idempotent(tmp_path, monkeypatch, capsys, creator_type):
+    from app.index import FtsIndex
+    from app.storage.fs_store import FilesystemStore
+
+    artifact = {
+        "@context": "https://linked.art/ns/v1/linked-art.json",
+        "id": "https://api.acmi.net.au/creators/123/",
+        "type": creator_type,
+        "_label": "Example Creator",
+    }
+    monkeypatch.delenv("API_AUTH_USERNAME")
+    monkeypatch.delenv("API_AUTH_PASSWORD")
+    monkeypatch.setattr(load_acmi.urllib.request, "urlopen", lambda *a, **kw: io.BytesIO(json.dumps(artifact).encode()))
+    args = ["--creator-id", "123", "--direct", "--data-dir", str(tmp_path)]
+    assert load_acmi.main(args) == 0
+    assert load_acmi.main(args) == 0
+    assert "unchanged (no new version)" in capsys.readouterr().out
+    store = FilesystemStore(tmp_path / "artifacts")
+    assert json.loads(store.get(artifact["id"]).body) == artifact
+    index = FtsIndex(tmp_path / "index.sqlite3")
+    try:
+        total, results = index.search("Example", partners=["acmi"], types=[creator_type])
+        assert total == 1
+        assert results[0].iri == artifact["id"]
+    finally:
+        index.close()
+
+
+@pytest.mark.parametrize("response", [b"not json", b"[]"])
+def test_invalid_creator_source_is_not_published(monkeypatch, response, capsys):
+    def urlopen(request, timeout):
+        assert request.get_method() == "GET"
+        return io.BytesIO(response)
+
+    monkeypatch.setattr(load_acmi.urllib.request, "urlopen", urlopen)
+    assert load_acmi.main(["--creator-id", "123"]) == 1
+    assert "Could not fetch ACMI creator" in capsys.readouterr().err
